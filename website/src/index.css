@@ -1,0 +1,27 @@
+@import 'tailwindcss' source(none);
+@source './**/*.{js,ts,jsx,tsx}';
+@import 'tw-animate-css';
+@import './styles/globals.css';
+
+@layer base {
+  html,
+  body,
+  #root {
+    min-height: 100vh;
+    height: 100%;
+    margin: 0;
+  }
+
+  /* MZADAT brand typography — direction-driven (set by i18n.ts) */
+  html[lang='ar'] body {
+    font-family: 'Noto Kufi Arabic', 'Helvetica', sans-serif;
+  }
+  html[lang='en'] body {
+    font-family: 'Helvetica', 'Noto Kufi Arabic', sans-serif;
+  }
+
+  /* Fallback: if lang attribute not yet applied */
+  body {
+    font-family: 'Noto Kufi Arabic', 'Helvetica', sans-serif;
+  }
+}

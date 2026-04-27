@@ -1,0 +1,52 @@
+# ── Dependencies ─────────────────────────────────────────────────────────────
+node_modules/
+vendor/
+
+# ── Build output ─────────────────────────────────────────────────────────────
+build/
+dist/
+out/
+*.tar.gz
+backend/server
+backend/seed
+
+# ── Environment ──────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ── Editor / OS ──────────────────────────────────────────────────────────────
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+Thumbs.db
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Temporary / generated ────────────────────────────────────────────────────
+tmp/
+*.tmp
+repomix-output.xml
+src/tmp/
+src/replace.js
+src/fix.js
+
+# ── Cache ────────────────────────────────────────────────────────────────────
+.cache/
+.parcel-cache/
+.vite/
+
+# ── Coverage ─────────────────────────────────────────────────────────────────
+coverage/
+*.lcov
+
+# ── Duplicates (Mzadat copies) ───────────────────────────────────────────────
+"Mzadat.com.sa (Copy)*"

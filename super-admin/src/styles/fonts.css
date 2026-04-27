@@ -1,0 +1,163 @@
+/* MZADAT 2026 Typography System */
+
+/* Arabic Font - Noto Kufi Arabic (Primary for Arabic UI) */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@300;400;500;600;700&display=swap');
+
+/* English Font - Helvetica Neue (System fonts with fallback) */
+/* Using system fonts for Helvetica family with proper fallbacks */
+
+:root {
+  /* Font Family Variables */
+  --font-primary: 'Noto Kufi Arabic', sans-serif; /* Default to Arabic */
+  --font-arabic: 'Noto Kufi Arabic', sans-serif;
+  --font-english: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-numeric: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* Always use Helvetica for numbers */
+  
+  /* Font Weights */
+  --font-light: 300;
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+}
+
+/* Apply Helvetica for English content */
+[lang="en"] {
+  font-family: var(--font-english);
+  line-height: var(--line-height-english);
+}
+
+/* Apply Noto Kufi Arabic for Arabic content */
+[lang="ar"] {
+  font-family: var(--font-arabic);
+  line-height: var(--line-height-arabic);
+}
+
+/* Always use Helvetica for numeric data regardless of language */
+.numeric,
+.font-numeric,
+.font-helvetica,
+[data-numeric="true"] {
+  font-family: var(--font-numeric) !important;
+  font-variant-numeric: tabular-nums;
+  line-height: var(--line-height-english) !important;
+}
+
+/* Typography utility classes */
+.font-arabic {
+  font-family: var(--font-arabic);
+  line-height: var(--line-height-arabic);
+}
+
+.font-english {
+  font-family: var(--font-english);
+  line-height: var(--line-height-english);
+}
+
+/* Mzadat Typography Hierarchy */
+
+/* Page Title - H1 */
+.mzadat-h1 {
+  font-size: var(--text-h1);
+  font-weight: var(--weight-bold);
+  line-height: var(--line-height-english);
+}
+
+[lang="ar"] .mzadat-h1 {
+  font-family: var(--font-arabic);
+  line-height: var(--line-height-arabic);
+}
+
+[lang="en"] .mzadat-h1 {
+  font-family: var(--font-english);
+  line-height: var(--line-height-english);
+}
+
+/* Section Heading - H2 */
+.mzadat-h2 {
+  font-size: var(--text-h2);
+  font-weight: var(--weight-semibold);
+  line-height: var(--line-height-english);
+}
+
+[lang="ar"] .mzadat-h2 {
+  font-family: var(--font-arabic);
+  line-height: var(--line-height-arabic);
+}
+
+[lang="en"] .mzadat-h2 {
+  font-family: var(--font-english);
+  line-height: var(--line-height-english);
+}
+
+/* Card Title - H3 */
+.mzadat-h3 {
+  font-size: var(--text-h3);
+  font-weight: var(--weight-medium);
+  line-height: var(--line-height-english);
+}
+
+[lang="ar"] .mzadat-h3 {
+  font-family: var(--font-arabic);
+  line-height: var(--line-height-arabic);
+}
+
+[lang="en"] .mzadat-h3 {
+  font-family: var(--font-english);
+  line-height: var(--line-height-english);
+}
+
+/* Body Text */
+.mzadat-body {
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  line-height: var(--line-height-english);
+}
+
+[lang="ar"] .mzadat-body {
+  font-family: var(--font-arabic);
+  line-height: var(--line-height-arabic);
+}
+
+[lang="en"] .mzadat-body {
+  font-family: var(--font-english);
+  line-height: var(--line-height-english);
+}
+
+/* Caption/Label Text */
+.mzadat-caption {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-regular);
+  line-height: var(--line-height-english);
+}
+
+[lang="ar"] .mzadat-caption {
+  font-family: var(--font-arabic);
+  line-height: var(--line-height-arabic);
+}
+
+[lang="en"] .mzadat-caption {
+  font-family: var(--font-english);
+  line-height: var(--line-height-english);
+}
+
+/* Ensure body uses the primary font */
+body {
+  font-family: var(--font-primary);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+}
+
+/* Pulse Animation for Ending Soon Badge */
+@keyframes pulse-red {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+}
+
+.badge-pulse-red {
+  animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

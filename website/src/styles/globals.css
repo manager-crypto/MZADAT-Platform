@@ -1,0 +1,429 @@
+/* ============================================
+   src/index.css — النسخة المُصحَّحة
+   الإصلاحات:
+   1. دمج :root في تعريف واحد (حُذف التضارب)
+   2. نقل --input-background و --switch-background من التعريف الثاني
+   3. توحيد .dark في كتلة واحدة
+   4. حذف animate-fade-up المكررة (أُبقي عليها مرة واحدة فقط)
+   5. الإبقاء على floating animations من globals.css
+============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@100..900&display=swap');
+
+@custom-variant dark (&:is(.dark *));
+
+/* ✅ تعريف واحد موحّد — حُذف التعريف الثاني الذي كان يُلغي هذا */
+:root {
+  --font-size: 16px;
+
+  /* ✅ الألوان الرئيسية لهوية مزادات */
+  --background: #FFFFFF;
+  --foreground: #000000;
+  --card: #FFFFFF;
+  --card-foreground: #000000;
+  --popover: #FFFFFF;
+  --popover-foreground: #000000;
+
+  /* ✅ Primary = تيل #47CCD0 (كان يُلغى بـ #030213 في التعريف الثاني) */
+  --primary: #47CCD0;
+  --primary-foreground: #FFFFFF;
+
+  /* ✅ Secondary = نيفي #2B3D50 (كان يُلغى بـ oklch(0.95...) في التعريف الثاني) */
+  --secondary: #2B3D50;
+  --secondary-foreground: #FFFFFF;
+
+  --muted: #F8FAFB;
+  --muted-foreground: #7F8C8D;
+  --accent: #F8FAFB;
+  --accent-foreground: #2B3D50;
+
+  --destructive: #E74C3C;
+  --destructive-foreground: #FFFFFF;
+
+  --border: #E1E8ED;
+  --ring: #47CCD0;
+
+  /* ✅ مُنقولة من التعريف الثاني (كانت ستُفقد) */
+  --input: transparent;
+  --input-background: #f3f3f5;
+  --switch-background: #cbced4;
+
+  --radius: 0.625rem;
+
+  /* Feedback */
+  --success: #2ECC71;
+  --warning: #F39C12;
+
+  /* Charts */
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+
+  /* Sidebar */
+  --sidebar: #2B3D50;
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-primary: #47CCD0;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #34495E;
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: #34495E;
+  --sidebar-ring: #47CCD0;
+
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+}
+
+/* ✅ كتلة .dark واحدة موحّدة */
+.dark, :root:not(.light) {
+  --background: #2B3D50;
+  --foreground: #FFFFFF;
+  --card: #32475C;
+  --card-foreground: #FFFFFF;
+  --popover: #2B3D50;
+  --popover-foreground: #FFFFFF;
+  --primary: #47CCD0;
+  --primary-foreground: #FFFFFF;
+  --secondary: #32475C;
+  --secondary-foreground: #FFFFFF;
+  --muted: #1A2531;
+  --muted-foreground: #B6B5B5;
+  --accent: #47CCD0;
+  --accent-foreground: #FFFFFF;
+  --destructive: #E74C3C;
+  --destructive-foreground: #FFFFFF;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: #1A2531;
+  --input-background: #1A2531;
+  --switch-background: #334155;
+  --ring: #47CCD0;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+}
+
+/* ✅ تحويل ظلال الـ hover للبطاقات إلى درجة خفيفة من لون الشعار */
+[class*="rounded"]:hover {
+  --tw-shadow-color: rgba(70, 195, 198, 0.18) !important;
+}
+
+/* ============================================
+   Dark Mode Global Overrides (Only apply if not in light mode)
+   ============================================ */
+html:not(.light) {
+  & body {
+    background-color: #2B3D50 !important;
+    color: #FFFFFF !important;
+  }
+
+  /* ─── Backgrounds ─── */
+  & [class*="bg-white"], & [class*="bg-[#ffffff]"], & [class*="bg-[#FFFFFF]"] {
+    background-color: #32475C !important;
+  }
+
+  & [class*="bg-gray-50"], & [class*="bg-gray-100"], & [class*="bg-[#F8FAFC]"], & [class*="bg-[#F9FAFB]"], & [class*="bg-[#F3F4F6]"], & [class*="bg-[#F8FAFB]"] {
+    background-color: #2B3D50 !important;
+  }
+
+  & [class*="bg-gray-200"] {
+    background-color: #3B526A !important;
+  }
+
+  & [class*="hover:bg-gray-50"]:hover, & [class*="hover:bg-gray-100"]:hover, & [class*="hover:bg-[#F8FAFC]"]:hover, & [class*="hover:bg-[#F9FAFB]"]:hover {
+    background-color: #1A2531 !important;
+  }
+
+  & [class*="hover:bg-white"]:hover, & [class*="hover:bg-[#ffffff]"]:hover, & [class*="hover:bg-gray-200"]:hover {
+    background-color: #3B526A !important;
+  }
+
+  /* ─── Text Colors ─── */
+  & [class*="text-black"]:not([class*="text-black/"]):not([class*="hover:text-black"]):not(button[class*="hover:text-black"]):not(a[class*="hover:text-black"]) {
+    color: #FFFFFF !important;
+  }
+
+  & [class*="text-gray-900"], & [class*="text-gray-800"], & [class*="text-[#2B3D50]"], & [class*="text-[#1e293b]"], & [class*="text-[#1A1A1A]"] {
+    color: #FFFFFF !important;
+  }
+
+  & [class*="text-gray-700"], & [class*="text-gray-600"] {
+    color: #D1D5DB !important;
+  }
+
+  & [class*="text-gray-500"], & [class*="text-gray-400"], & [class*="text-gray-300"] {
+    color: #9CA3AF !important;
+  }
+
+  & [class*="hover:text-gray-900"]:hover, & [class*="hover:text-[#2B3D50]"]:hover, & [class*="hover:text-black"]:hover {
+    color: #FFFFFF !important;
+  }
+
+  & [class*="hover:text-[#47CCD0]"]:hover {
+    color: #47CCD0 !important;
+  }
+
+  & [class*="hover:bg-[#47CCD0]"]:hover {
+    background-color: #47CCD0 !important;
+    color: #FFFFFF !important;
+  }
+
+  /* ─── Group Hover ─── */
+  & .group:hover [class*="group-hover:text-[#47CCD0]"] {
+    color: #47CCD0 !important;
+  }
+
+  & .group:hover [class*="group-hover:bg-[#47CCD0]"] {
+    background-color: #47CCD0 !important;
+    color: #FFFFFF !important;
+  }
+
+  & .group:hover [class*="group-hover:text-white"] {
+    color: #FFFFFF !important;
+  }
+
+  & .group:hover [class*="group-hover:text-gray-900"], & .group:hover [class*="group-hover:text-black"] {
+    color: #FFFFFF !important;
+  }
+
+  & .group:hover [class*="group-hover:bg-white"], & .group:hover [class*="group-hover:bg-gray-50"] {
+    background-color: #3B526A !important;
+  }
+
+  /* ─── Borders ─── */
+  & [class*="border-gray-100"], & [class*="border-gray-200"], & [class*="border-gray-300"], & [class*="border-white"], & [class*="border-[#F9FAFB]"], & [class*="border-[#1e293b]"], & [class*="border-[#2B3D50]"] {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  & [class*="hover:border-gray"]:hover, & [class*="hover:border-white"]:hover, & [class*="hover:border-[#2B3D50]"]:hover {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+  }
+
+  & [class*="hover:border-[#47CCD0]"]:hover {
+    border-color: #47CCD0 !important;
+  }
+
+  /* ��── Dividers ─── */
+  & [class*="divide-gray-50"] > * + *, & [class*="divide-gray-100"] > * + *, & [class*="divide-gray-200"] > * + * {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  /* ─── Shadows ─── */
+  & [class*="shadow-sm"], & [class*="shadow-md"], & [class*="shadow-lg"]:not([class*="shadow-lg shadow-teal"]):not([class*="shadow-lg shadow-[#"]):not([class*="shadow-lg shadow-slate"]) {
+    --tw-shadow-color: rgba(0, 0, 0, 0.3) !important;
+  }
+
+  & [class*="shadow-xl"], & [class*="shadow-2xl"] {
+    --tw-shadow-color: rgba(0, 0, 0, 0.4) !important;
+  }
+
+  & [class*="shadow-gray-200"], & [class*="shadow-gray-200/50"], & [class*="shadow-white"] {
+    --tw-shadow-color: rgba(0, 0, 0, 0.3) !important;
+  }
+
+  & [class*="hover:shadow"] {
+    --tw-shadow-color: rgba(71, 204, 208, 0.12) !important;
+  }
+
+  /* ─── Ring ─── */
+  & [class*="ring-gray-100"], & [class*="ring-gray-200"], & [class*="ring-gray-300"] {
+    --tw-ring-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* ─── Sidebar / Aside ─── */
+  & aside, & .sidebar, & [class*="bg-[#2B3D50]"] {
+    background-color: #1A2531 !important;
+  }
+
+  /* ─── Forms ─── */
+  & input, & select, & textarea {
+    background-color: #1E2B3C !important;
+    color: #FFFFFF !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  & input::placeholder, & textarea::placeholder {
+    color: #7F8C8D !important;
+  }
+
+  /* ─── Gradients with white ─── */
+  & [class*="from-gray-50"], & [class*="from-[#F8FAFB]"] {
+    --tw-gradient-from: #2B3D50 !important;
+  }
+
+  & [class*="to-white"]:not([class*="text-white"]):not([class*="border-white"]):not([class*="bg-white"]) {
+    --tw-gradient-to: #32475C !important;
+  }
+
+  & [class*="from-[#E5F9FA]"] {
+    --tw-gradient-from: rgba(71, 204, 208, 0.1) !important;
+  }
+
+  /* ─── Status Badges ─── */
+  & [class*="bg-green-50"], & [class*="bg-green-100"] { background-color: rgba(46, 204, 113, 0.15) !important; }
+  & [class*="text-green-600"], & [class*="text-green-500"], & [class*="text-green-700"] { color: #2ECC71 !important; }
+  & [class*="bg-yellow-50"], & [class*="bg-orange-50"], & [class*="bg-amber-50"] { background-color: rgba(243, 156, 18, 0.15) !important; }
+  & [class*="text-yellow-600"], & [class*="text-orange-600"], & [class*="text-amber-600"] { color: #F39C12 !important; }
+  & [class*="bg-red-50"], & [class*="bg-red-100"] { background-color: rgba(231, 76, 60, 0.15) !important; }
+  & [class*="text-red-500"], & [class*="text-red-600"], & [class*="text-red-700"] { color: #E74C3C !important; }
+  & [class*="bg-blue-50"], & [class*="bg-blue-100"] { background-color: rgba(52, 152, 219, 0.15) !important; }
+  & [class*="text-blue-500"], & [class*="text-blue-600"], & [class*="text-blue-700"] { color: #3498DB !important; }
+  & [class*="bg-purple-50"], & [class*="bg-purple-100"] { background-color: rgba(155, 89, 182, 0.15) !important; }
+  & [class*="text-purple-600"], & [class*="text-purple-700"] { color: #9B59B6 !important; }
+  & [class*="bg-teal-50"], & [class*="bg-[#E5F9FA]"] { background-color: rgba(71, 204, 208, 0.1) !important; }
+
+  /* ─── Scrollbar ─── */
+  & ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  & ::-webkit-scrollbar-track {
+    background: #1A2531;
+  }
+  & ::-webkit-scrollbar-thumb {
+    background: #3B526A;
+    border-radius: 3px;
+  }
+  & ::-webkit-scrollbar-thumb:hover {
+    background: #47CCD0;
+  }
+
+  /* ─── Specific dark elements that should stay ─── */
+  & [class*="bg-[#1A1A1A]"], & [class*="bg-gray-900"], & [class*="bg-[#0f172a]"] {
+    background-color: #1A2531 !important;
+  }
+
+  /* ─── Tables ─── */
+  & th {
+    background-color: #2B3D50 !important;
+    color: #9CA3AF !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  & td {
+    border-color: rgba(255, 255, 255, 0.06) !important;
+  }
+
+  & tr:hover td {
+    background-color: rgba(71, 204, 208, 0.05) !important;
+  }
+
+  /* ─── Modals & Dialogs ─── */
+  & [role="dialog"], & [data-state="open"] {
+    color: #FFFFFF;
+  }
+
+  /* ─── Progress bars ─── */
+  & [class*="bg-gray-100"][class*="rounded-full"][class*="overflow-hidden"],
+  & [class*="bg-gray-200"][class*="rounded-full"] {
+    background-color: #1A2531 !important;
+  }
+
+  /* ─── Image Inversion for Dark Mode (SAR currency) ─── */
+  & img[alt="ر.س"], & img[alt="SAR"] {
+    filter: brightness(0) invert(1) !important;
+    opacity: 0.9 !important;
+  }
+
+  /* ─── Placeholder images ─── */
+  & [class*="bg-gray-100"][class*="flex"][class*="items-center"][class*="justify-center"] {
+    background-color: #1A2531 !important;
+  }
+}
+
+@theme inline {
+  --font-sans: 'Helvetica', 'Noto Kufi Arabic', system-ui, sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Helvetica', 'Noto Kufi Arabic', system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
+  
+  .font-mono, [class*="font-mono"] {
+    font-family: 'Helvetica', system-ui, sans-serif !important;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer base {
+  :where(:not(:has([class*=' text-']), :not(:has([class^='text-'])))) {
+    h1, h2, h3, h4, label, button { font-family: inherit; }
+    h1 { font-size: var(--text-2xl); font-weight: var(--font-weight-medium); line-height: 1.5; }
+    h2 { font-size: var(--text-xl);  font-weight: var(--font-weight-medium); line-height: 1.5; }
+    h3 { font-size: var(--text-lg);  font-weight: var(--font-weight-medium); line-height: 1.5; }
+    h4 { font-size: var(--text-base);font-weight: var(--font-weight-medium); line-height: 1.5; }
+    p  { font-size: var(--text-base);font-weight: var(--font-weight-normal);  line-height: 1.5; }
+    label, button { font-size: var(--text-base); font-weight: var(--font-weight-medium); line-height: 1.5; }
+    input { font-size: var(--text-base); font-weight: var(--font-weight-normal); line-height: 1.5; }
+  }
+}
+
+html {
+  font-size: var(--font-size);
+}
+
+/* ✅ animate-fade-up — مرة واحدة فقط (كانت مكررة 3 مرات) */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fade-up 0.5s ease-out forwards;
+}
+
+/* Floating animations للأيقونات */
+@keyframes float         { 0%,100%{transform:translateY(0)}    50%{transform:translateY(-10px)} }
+@keyframes float-delay-1 { 0%,100%{transform:translateY(0)}    50%{transform:translateY(-12px)} }
+@keyframes float-delay-2 { 0%,100%{transform:translateY(0)}    50%{transform:translateY(-8px)}  }
+@keyframes float-delay-3 { 0%,100%{transform:translateY(0)}    50%{transform:translateY(-15px)} }
+
+.animate-float          { animation: float          3s   ease-in-out infinite; }
+.animate-float-delay-1  { animation: float-delay-1  3.5s ease-in-out infinite; animation-delay: 0.5s; }
+.animate-float-delay-2  { animation: float-delay-2  3.2s ease-in-out infinite; animation-delay: 1s;   }
+.animate-float-delay-3  { animation: float-delay-3  3.8s ease-in-out infinite; animation-delay: 1.5s; }

@@ -1,0 +1,361 @@
+/* ===================================================================
+   MZADAT 2026 - RTL/LTR Support Utilities
+   Comprehensive CSS for bidirectional layout support
+   ================================================================= */
+
+/* RTL-specific adjustments */
+[dir="rtl"] {
+  /* Fix scrollbar position in RTL */
+  scrollbar-gutter: stable both-edges;
+}
+
+/* Text direction utilities */
+.dir-rtl {
+  direction: rtl;
+}
+
+.dir-ltr {
+  direction: ltr;
+}
+
+/* Force LTR for specific elements (numbers, icons, etc.) */
+.ltr-content {
+  direction: ltr;
+  display: inline-block;
+}
+
+/* Logical properties utilities */
+.start-0 {
+  inset-inline-start: 0;
+}
+
+.end-0 {
+  inset-inline-end: 0;
+}
+
+.ms-auto {
+  margin-inline-start: auto;
+}
+
+.me-auto {
+  margin-inline-end: auto;
+}
+
+/* Border utilities with logical properties */
+.border-start {
+  border-inline-start-width: 1px;
+  border-inline-start-style: solid;
+}
+
+.border-end {
+  border-inline-end-width: 1px;
+  border-inline-end-style: solid;
+}
+
+/* Rounded corners with logical properties */
+.rounded-start {
+  border-start-start-radius: 0.375rem;
+  border-end-start-radius: 0.375rem;
+}
+
+.rounded-end {
+  border-start-end-radius: 0.375rem;
+  border-end-end-radius: 0.375rem;
+}
+
+/* Transform utilities - for icons that should NOT flip */
+.no-flip {
+  transform: scaleX(1) !important;
+}
+
+[dir="rtl"] .no-flip {
+  transform: scaleX(1) !important;
+}
+
+/* Natural flip for directional icons */
+[dir="rtl"] .flip-rtl {
+  transform: scaleX(-1);
+}
+
+/* Typography adjustments for mixed content */
+.mixed-content {
+  unicode-bidi: plaintext;
+}
+
+/* Number formatting - always LTR */
+.numeric-value {
+  direction: ltr;
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Preserve whitespace for Arabic text */
+[lang="ar"] .preserve-space {
+  white-space: pre-wrap;
+  word-spacing: 0.25em;
+}
+
+/* Fix flexbox in RTL */
+[dir="rtl"] .flex-fix {
+  flex-direction: row-reverse;
+}
+
+/* Grid adjustments for RTL */
+[dir="rtl"] .grid-rtl {
+  direction: rtl;
+}
+
+[dir="rtl"] .grid-rtl > * {
+  direction: ltr;
+}
+
+/* Text alignment utilities that respect direction */
+.text-start {
+  text-align: start;
+}
+
+.text-end {
+  text-align: end;
+}
+
+/* Float utilities with logical properties */
+.float-start {
+  float: inline-start;
+}
+
+.float-end {
+  float: inline-end;
+}
+
+/* Clearfix for floats */
+.clearfix::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Animation adjustments for RTL */
+@keyframes slideInFromStart {
+  from {
+    transform: translateX(var(--slide-start, -100%));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromEnd {
+  from {
+    transform: translateX(var(--slide-end, 100%));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+[dir="rtl"] {
+  --slide-start: 100%;
+  --slide-end: -100%;
+}
+
+[dir="ltr"] {
+  --slide-start: -100%;
+  --slide-end: 100%;
+}
+
+/* Drawer/Sidebar animations */
+.drawer-start {
+  animation: slideInFromStart 0.3s ease-out;
+}
+
+.drawer-end {
+  animation: slideInFromEnd 0.3s ease-out;
+}
+
+/* Form input direction */
+input[type="tel"],
+input[type="number"],
+input.numeric-input {
+  direction: ltr;
+  text-align: left;
+}
+
+[dir="rtl"] input:not([type="tel"]):not([type="number"]):not(.numeric-input) {
+  text-align: right;
+}
+
+/* Table alignment */
+[dir="rtl"] table {
+  direction: rtl;
+}
+
+[dir="rtl"] th,
+[dir="rtl"] td {
+  text-align: right;
+}
+
+[dir="rtl"] th:first-child,
+[dir="rtl"] td:first-child {
+  text-align: right;
+}
+
+/* List markers alignment */
+[dir="rtl"] ul,
+[dir="rtl"] ol {
+  padding-inline-start: 2rem;
+  padding-inline-end: 0;
+}
+
+/* Tooltip positioning */
+[dir="rtl"] .tooltip {
+  direction: rtl;
+}
+
+/* Breadcrumb separators */
+[dir="rtl"] .breadcrumb-separator::before {
+  content: "\\";
+  transform: scaleX(-1);
+}
+
+[dir="ltr"] .breadcrumb-separator::before {
+  content: "/";
+}
+
+/* Dropdown menu alignment */
+[dir="rtl"] .dropdown-menu {
+  left: auto;
+  right: 0;
+}
+
+/* Modal positioning */
+[dir="rtl"] .modal {
+  direction: rtl;
+}
+
+/* Tab navigation */
+[dir="rtl"] .tabs {
+  direction: rtl;
+}
+
+/* Stepper/Progress indicators */
+[dir="rtl"] .stepper {
+  flex-direction: row-reverse;
+}
+
+/* Card layout adjustments */
+[dir="rtl"] .card-icon {
+  margin-inline-start: 0;
+  margin-inline-end: 1rem;
+}
+
+/* Badge positioning */
+[dir="rtl"] .badge-absolute {
+  left: auto;
+  right: 0;
+}
+
+/* Checkbox and radio alignment */
+[dir="rtl"] .checkbox-label,
+[dir="rtl"] .radio-label {
+  padding-inline-start: 0;
+  padding-inline-end: 0.5rem;
+}
+
+/* Search input icon */
+[dir="rtl"] .search-icon {
+  left: auto;
+  right: 0.75rem;
+}
+
+/* Calendar adjustments */
+[dir="rtl"] .calendar {
+  direction: rtl;
+}
+
+[dir="rtl"] .calendar-day {
+  text-align: center;
+}
+
+/* Pagination */
+[dir="rtl"] .pagination {
+  flex-direction: row-reverse;
+}
+
+/* Avatar group */
+[dir="rtl"] .avatar-group {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .avatar-group .avatar {
+  margin-inline-start: -0.5rem;
+  margin-inline-end: 0;
+}
+
+/* Timeline */
+[dir="rtl"] .timeline::before {
+  left: auto;
+  right: 0;
+}
+
+[dir="rtl"] .timeline-item {
+  padding-inline-start: 0;
+  padding-inline-end: 2rem;
+}
+
+/* Notification position */
+[dir="rtl"] .notification-container {
+  left: auto;
+  right: 1rem;
+}
+
+/* Sidebar toggle */
+[dir="rtl"] .sidebar-toggle {
+  left: auto;
+  right: 0;
+}
+
+/* Logo and brand assets - never flip */
+.brand-logo,
+.logo-icon,
+[data-brand="true"] {
+  transform: none !important;
+  direction: ltr;
+}
+
+/* Preserve specific UI elements in LTR */
+.preserve-ltr {
+  direction: ltr !important;
+}
+
+/* Status indicators */
+.status-indicator {
+  direction: ltr;
+  display: inline-flex;
+}
+
+/* Print adjustments */
+@media print {
+  [dir="rtl"] {
+    direction: rtl;
+  }
+  
+  [dir="rtl"] * {
+    text-align: right;
+  }
+}
+
+/* Accessibility: High contrast mode support */
+@media (prefers-contrast: high) {
+  [dir="rtl"] .border-start,
+  [dir="rtl"] .border-end {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .drawer-start,
+  .drawer-end {
+    animation: none;
+  }
+}

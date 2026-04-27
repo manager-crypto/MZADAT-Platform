@@ -1,0 +1,83 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# MZADAT Platform - Docker Compose
+# All secrets are loaded from .env file (see .env.example)
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mzadat_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER:-mzadat}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme_in_production}
+      POSTGRES_DB:       ${POSTGRES_DB:-mzadat_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/db/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mzadat} -d ${POSTGRES_DB:-mzadat_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mzadat_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: mzadat_redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mzadat_net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mzadat_backend
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    environment:
+      DATABASE_URL:     postgres://${POSTGRES_USER:-mzadat}:${POSTGRES_PASSWORD:-changeme_in_production}@postgres:5432/${POSTGRES_DB:-mzadat_db}?sslmode=disable
+      REDIS_URL:        redis:6379
+      PORT:             "8080"
+      ALLOWED_ORIGINS:  "${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000}"
+      ADMIN_SEED_EMAIL:    ${ADMIN_SEED_EMAIL:-admin@mzadat.com}
+      ADMIN_SEED_PASSWORD: ${ADMIN_SEED_PASSWORD:-changeme_in_production}
+      # SMS gateway (for customer OTP)
+      SMS_PROVIDER:        ${SMS_PROVIDER:-console}
+      UNIFONIC_APP_SID:    ${UNIFONIC_APP_SID:-}
+      UNIFONIC_SENDER_ID:  ${UNIFONIC_SENDER_ID:-MZADAT}
+      TWILIO_ACCOUNT_SID:  ${TWILIO_ACCOUNT_SID:-}
+      TWILIO_AUTH_TOKEN:   ${TWILIO_AUTH_TOKEN:-}
+      TWILIO_FROM_NUMBER:  ${TWILIO_FROM_NUMBER:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # NOTE: No volume mount of source! That would overwrite the compiled binary.
+    # For local development with hot-reload, use a separate compose override file.
+    networks:
+      - mzadat_net
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  mzadat_net:
+    driver: bridge
