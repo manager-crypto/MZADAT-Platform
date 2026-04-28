@@ -962,7 +962,7 @@ export default {
     "resultsFound": "تم العثور على {{count}} عقار تجاري متاح للبيع",
     "ctaTitle": "هل لديك عقار تجاري للإيجار أو للبيع؟",
     "popularNeighborhoods": "الأحياء الأكثر طلباً للتجاري",
-    "currency": "ر.س",
+    "currency": "﷼",
     "agentTime_2h": "منذ ساعتين",
     "agentTime_5h": "منذ 5 ساعات",
     "agentTime_3h": "منذ 3 ساعات",
@@ -978,7 +978,7 @@ export default {
     "statusForRent": "للإيجار",
     "rentTypeAnnual": "سنوي",
     "rentTypeMonthly": "شهري",
-    "currencyPerPeriod": "ر.س / {{period}}",
+    "currencyPerPeriod": "﷼ / {{period}}",
     "loadMore": "عرض المزيد من العقارات",
     "addPropertyFree": "أضف عقارك مجاناً",
     "popularNeighborhoods": "الأحياء الأكثر طلباً للتجاري",
@@ -2794,7 +2794,7 @@ export default {
     "ast3Type": "أرض"
   },
   "realEstateSale": {
-    "currency": "ر.س",
+    "currency": "﷼",
     "loadMore": "عرض المزيد",
     "agentTime_5h": "منذ 5 ساعات",
     "agentTime_1d": "منذ يوم",

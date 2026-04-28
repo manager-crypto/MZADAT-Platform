@@ -144,12 +144,12 @@ const initialIntegrations: Integration[] = [
     alerts: { push: true, email: false, sms: false }
   },
   {
-    id: "supabase", nameAr: "قاعدة البيانات Supabase", nameEn: "Supabase Database",
-    icon: Database, color: "#3ECF8E", status: "connected", uptime: "99.98%",
+    id: "postgres", nameAr: "قاعدة البيانات PostgreSQL", nameEn: "PostgreSQL Database",
+    icon: Database, color: "#336791", status: "connected", uptime: "99.98%",
     lastSync: "2026-03-30T11:46:12", syncFrequency: "1m",
     syncFrequencyLabel: { ar: "كل دقيقة", en: "Every minute" },
     successRate: "99.99%", totalSyncs: 87600, failedSyncs: 9, latency: "12ms",
-    endpoint: "https://mzadat.supabase.co", retryEnabled: true, retryInterval: 10, maxRetries: 5,
+    endpoint: "postgres://mzadat.internal:5432", retryEnabled: true, retryInterval: 10, maxRetries: 5,
     alerts: { push: true, email: true, sms: true }
   },
 ];
@@ -160,7 +160,7 @@ const syncLog: SyncLogEntry[] = [
   { id: "SL-003", integrationId: "google", integrationName: { ar: "خدمات Google", en: "Google Services" }, timestamp: "2026-03-30T11:30:00", status: "partial", duration: "8.5s", recordsSynced: 1245, errorMessage: { ar: "مزامنة جزئية - فهرسة 78% من الصفحات", en: "Partial sync - 78% of pages indexed" } },
   { id: "SL-004", integrationId: "rega", integrationName: { ar: "REGA", en: "REGA" }, timestamp: "2026-03-30T11:45:00", status: "success", duration: "2.1s", recordsSynced: 342 },
   { id: "SL-005", integrationId: "sadad", integrationName: { ar: "سداد", en: "SADAD" }, timestamp: "2026-03-30T11:46:00", status: "success", duration: "0.8s", recordsSynced: 89 },
-  { id: "SL-006", integrationId: "supabase", integrationName: { ar: "Supabase", en: "Supabase" }, timestamp: "2026-03-30T11:46:12", status: "success", duration: "0.3s", recordsSynced: 1547 },
+  { id: "SL-006", integrationId: "postgres", integrationName: { ar: "PostgreSQL", en: "PostgreSQL" }, timestamp: "2026-03-30T11:46:12", status: "success", duration: "0.3s", recordsSynced: 1547 },
   { id: "SL-007", integrationId: "nafath", integrationName: { ar: "نفاذ", en: "Nafath" }, timestamp: "2026-03-30T11:44:00", status: "success", duration: "1.5s", recordsSynced: 67 },
   { id: "SL-008", integrationId: "elasticsearch", integrationName: { ar: "Elasticsearch", en: "Elasticsearch" }, timestamp: "2026-03-30T11:46:05", status: "success", duration: "0.5s", recordsSynced: 2340 },
   { id: "SL-009", integrationId: "aws_s3", integrationName: { ar: "AWS S3", en: "AWS S3" }, timestamp: "2026-03-30T11:46:10", status: "success", duration: "0.2s", recordsSynced: 456 },

@@ -16,14 +16,14 @@ import (
 
 // Action constants — keep these UPPER_SNAKE_CASE and documented.
 const (
-	ActionLogin              = "ADMIN_LOGIN"
-	ActionLogout             = "ADMIN_LOGOUT"
-	ActionAuctionApprove     = "AUCTION_APPROVE"
-	ActionAuctionReject      = "AUCTION_REJECT"
-	ActionAuctionDelete      = "AUCTION_DELETE"
-	ActionSectionToggle      = "SECTION_TOGGLE_VISIBILITY"
-	ActionSectionReorder     = "SECTION_REORDER"
-	ActionUserToggleActive   = "USER_TOGGLE_ACTIVE"
+	ActionLogin            = "ADMIN_LOGIN"
+	ActionLogout           = "ADMIN_LOGOUT"
+	ActionAuctionApprove   = "AUCTION_APPROVE"
+	ActionAuctionReject    = "AUCTION_REJECT"
+	ActionAuctionDelete    = "AUCTION_DELETE"
+	ActionSectionToggle    = "SECTION_TOGGLE_VISIBILITY"
+	ActionSectionReorder   = "SECTION_REORDER"
+	ActionUserToggleActive = "USER_TOGGLE_ACTIVE"
 )
 
 // Entity types

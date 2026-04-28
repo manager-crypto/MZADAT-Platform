@@ -1,9 +1,9 @@
 import React from 'react';
 
 interface BidiTextProps {
-  text: string | number;
-  dir?: 'ltr' | 'rtl' | 'auto';
-  className?: string;
+ text: string | number;
+ dir?: 'ltr' | 'rtl' | 'auto';
+ className?: string;
 }
 
 /**
@@ -12,9 +12,9 @@ interface BidiTextProps {
  * in an RTL context without having them flip un-intuitively.
  */
 export const BidiText: React.FC<BidiTextProps> = ({ text, dir = 'ltr', className = '' }) => {
-  return (
-    <bdi dir={dir} className={className}>
-      {text}
-    </bdi>
-  );
+ return (
+ <bdi dir={dir} className={className}>
+ {text}
+ </bdi>
+ );
 };

@@ -129,10 +129,10 @@ func (u *UnifonicProvider) Send(ctx context.Context, to, message string) error {
 
 	// Unifonic returns HTTP 200 even on logical errors — check payload
 	var result struct {
-		Success bool            `json:"success"`
-		Data    json.RawMessage `json:"data"`
-		ErrorCode string `json:"errorCode"`
-		Message string `json:"message"`
+		Success   bool            `json:"success"`
+		Data      json.RawMessage `json:"data"`
+		ErrorCode string          `json:"errorCode"`
+		Message   string          `json:"message"`
 	}
 	if err := json.Unmarshal(body, &result); err != nil {
 		return fmt.Errorf("unifonic: parse response (status %d, body=%s): %w",

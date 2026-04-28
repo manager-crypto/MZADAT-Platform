@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/mzadat/backend/auth"
 	"github.com/mzadat/backend/db"
-	"github.com/jackc/pgx/v5"
 )
 
 // ─── OTP: send ──────────────────────────────────────────────────────────────
@@ -219,7 +219,7 @@ func UserOTPVerify(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]any{
-		"ok":      true,
+		"ok":       true,
 		"verified": true,
 	})
 }
@@ -263,7 +263,7 @@ func UserPasswordResetRequest(w http.ResponseWriter, r *http.Request) {
 		// Don't leak — always return success
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]any{
-			"ok": true,
+			"ok":      true,
 			"message": "if an account exists, an OTP has been sent",
 		})
 		return

@@ -10,15 +10,15 @@ import (
 )
 
 type financeSummary struct {
-	TotalProperties       int     `json:"total_properties"`
-	TotalActiveAuctions   int     `json:"total_active_auctions"`
-	TotalSold             int     `json:"total_sold"`
-	TotalPending          int     `json:"total_pending"`
-	TotalCurrentBidsSAR   float64 `json:"total_current_bids_sar"`
-	TotalStartingBidsSAR  float64 `json:"total_starting_bids_sar"`
-	AvgPriceTotalSAR      float64 `json:"avg_price_total_sar"`
-	FeaturedCount         int     `json:"featured_count"`
-	GeneratedAt           string  `json:"generated_at"`
+	TotalProperties      int     `json:"total_properties"`
+	TotalActiveAuctions  int     `json:"total_active_auctions"`
+	TotalSold            int     `json:"total_sold"`
+	TotalPending         int     `json:"total_pending"`
+	TotalCurrentBidsSAR  float64 `json:"total_current_bids_sar"`
+	TotalStartingBidsSAR float64 `json:"total_starting_bids_sar"`
+	AvgPriceTotalSAR     float64 `json:"avg_price_total_sar"`
+	FeaturedCount        int     `json:"featured_count"`
+	GeneratedAt          string  `json:"generated_at"`
 }
 
 // AdminGetFinanceSummary handles GET /api/admin/finance/summary

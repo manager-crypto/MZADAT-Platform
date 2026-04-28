@@ -5,115 +5,115 @@ import { ChevronRight, MoreHorizontal } from "lucide-react";
 import { cn } from "./utils";
 
 function cleanProps(props: any) {
-  const cleaned: any = {};
-  for (const [key, value] of Object.entries(props)) {
-    if (!key.startsWith('_fg')) {
-      cleaned[key] = value;
-    }
-  }
-  return cleaned;
+ const cleaned: any = {};
+ for (const [key, value] of Object.entries(props)) {
+ if (!key.startsWith('_fg')) {
+ cleaned[key] = value;
+ }
+ }
+ return cleaned;
 }
 
 function Breadcrumb({ ...props }: React.ComponentProps<"nav">) {
-  return <nav aria-label="breadcrumb" data-slot="breadcrumb" {...cleanProps(props)} />;
+ return <nav aria-label="breadcrumb" data-slot="breadcrumb" {...cleanProps(props)} />;
 }
 
 function BreadcrumbList({ className, ...props }: React.ComponentProps<"ol">) {
-  return (
-    <ol
-      data-slot="breadcrumb-list"
-      className={cn(
-        "text-muted-foreground flex flex-wrap items-center gap-1.5 text-sm break-words sm:gap-2.5",
-        className,
-      )}
-      {...cleanProps(props)}
-    />
-  );
+ return (
+ <ol
+ data-slot="breadcrumb-list"
+ className={cn(
+ "text-muted-foreground flex flex-wrap items-center gap-1.5 text-sm break-words sm:gap-2.5",
+ className,
+ )}
+ {...cleanProps(props)}
+ />
+ );
 }
 
 function BreadcrumbItem({ className, ...props }: React.ComponentProps<"li">) {
-  return (
-    <li
-      data-slot="breadcrumb-item"
-      className={cn("inline-flex items-center gap-1.5", className)}
-      {...cleanProps(props)}
-    />
-  );
+ return (
+ <li
+ data-slot="breadcrumb-item"
+ className={cn("inline-flex items-center gap-1.5", className)}
+ {...cleanProps(props)}
+ />
+ );
 }
 
 function BreadcrumbLink({
-  asChild,
-  className,
-  ...props
+ asChild,
+ className,
+ ...props
 }: React.ComponentProps<"a"> & {
-  asChild?: boolean;
+ asChild?: boolean;
 }) {
-  const Comp = asChild ? Slot : "a";
+ const Comp = asChild ? Slot : "a";
 
-  return (
-    <Comp
-      data-slot="breadcrumb-link"
-      className={cn("hover:text-foreground transition-colors", className)}
-      {...cleanProps(props)}
-    />
-  );
+ return (
+ <Comp
+ data-slot="breadcrumb-link"
+ className={cn("hover:text-foreground transition-colors", className)}
+ {...cleanProps(props)}
+ />
+ );
 }
 
 function BreadcrumbPage({ className, ...props }: React.ComponentProps<"span">) {
-  return (
-    <span
-      data-slot="breadcrumb-page"
-      role="link"
-      aria-disabled="true"
-      aria-current="page"
-      className={cn("text-foreground font-normal", className)}
-      {...cleanProps(props)}
-    />
-  );
+ return (
+ <span
+ data-slot="breadcrumb-page"
+ role="link"
+ aria-disabled="true"
+ aria-current="page"
+ className={cn("text-foreground font-normal", className)}
+ {...cleanProps(props)}
+ />
+ );
 }
 
 function BreadcrumbSeparator({
-  children,
-  className,
-  ...props
+ children,
+ className,
+ ...props
 }: React.ComponentProps<"li">) {
-  return (
-    <li
-      data-slot="breadcrumb-separator"
-      role="presentation"
-      aria-hidden="true"
-      className={cn("[&>svg]:size-3.5", className)}
-      {...cleanProps(props)}
-    >
-      {children ?? <ChevronRight />}
-    </li>
-  );
+ return (
+ <li
+ data-slot="breadcrumb-separator"
+ role="presentation"
+ aria-hidden="true"
+ className={cn("[&>svg]:size-3.5", className)}
+ {...cleanProps(props)}
+ >
+ {children ?? <ChevronRight />}
+ </li>
+ );
 }
 
 function BreadcrumbEllipsis({
-  className,
-  ...props
+ className,
+ ...props
 }: React.ComponentProps<"span">) {
-  return (
-    <span
-      data-slot="breadcrumb-ellipsis"
-      role="presentation"
-      aria-hidden="true"
-      className={cn("flex size-9 items-center justify-center", className)}
-      {...cleanProps(props)}
-    >
-      <MoreHorizontal className="size-4" />
-      <span className="sr-only">More</span>
-    </span>
-  );
+ return (
+ <span
+ data-slot="breadcrumb-ellipsis"
+ role="presentation"
+ aria-hidden="true"
+ className={cn("flex size-9 items-center justify-center", className)}
+ {...cleanProps(props)}
+ >
+ <MoreHorizontal className="size-4" />
+ <span className="sr-only">More</span>
+ </span>
+ );
 }
 
 export {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-  BreadcrumbEllipsis,
+ Breadcrumb,
+ BreadcrumbList,
+ BreadcrumbItem,
+ BreadcrumbLink,
+ BreadcrumbPage,
+ BreadcrumbSeparator,
+ BreadcrumbEllipsis,
 };

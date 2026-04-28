@@ -6,14 +6,14 @@ import './index.css';
 
 const rootEl = document.getElementById('root');
 if (!rootEl) {
-  throw new Error(
-    'Root element #root was not found in index.html. ' +
-      'Check that public/index.html contains <div id="root"></div>.',
-  );
+ throw new Error(
+ 'Root element #root was not found in index.html. ' +
+ 'Check that public/index.html contains <div id="root"></div>.',
+ );
 }
 
 createRoot(rootEl).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+ <StrictMode>
+ <App />
+ </StrictMode>,
 );

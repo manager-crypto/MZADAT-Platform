@@ -1,349 +1,488 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
-  MapPin,
-  Timer,
-  Gavel,
-  User,
-  Clock,
-  Maximize,
-  Info,
-  FileText,
-  ChevronLeft,
-  ShieldCheck,
-  Eye,
-  Send,
-  Heart,
-  Share2,
-  Volume2,
-  VolumeX,
-  Radio
+ MapPin,
+ Timer,
+ Gavel,
+ User,
+ Clock,
+ Maximize,
+ Info,
+ FileText,
+ ChevronLeft,
+ ShieldCheck,
+ Eye,
+ Send,
+ Heart,
+ Share2,
+ Volume2,
+ VolumeX,
+ Radio
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { RiyalSymbol } from '../components/ui/RiyalSymbol';
 import { useTranslation } from 'react-i18next';
+import { useAuctionLive, placeBid, BidPlacedEvent } from '../hooks/useAuctionLive';
 
 interface LiveAuctionPageProps {
-  onNavigate: (page: string) => void;
+ onNavigate: (page: string) => void;
+ /** Optional: when provided, connects to real backend WebSocket. Otherwise demo mode. */
+ auctionId?: string;
 }
 
-export const LiveAuctionPage: React.FC<LiveAuctionPageProps> = ({ onNavigate }) => {
-  const { t } = useTranslation();
-  const [currentBid, setCurrentBid] = useState(2500000);
-  const [isMuted, setIsMuted] = useState(true);
-  const [activeTab, setActiveTab] = useState('details');
-  const [bidAmount, setBidAmount] = useState<string>('');
+interface LogItem {
+  id: string | number;
+  type: 'bid' | 'system';
+  user?: string;
+  amount?: number;
+  message?: string;
+  time: string;
+}
 
-  // Fake chat/log
-  const [logs, setLogs] = useState([
-    { id: 1, type: 'bid', user: t('liveAuction.user1'), amount: 2450000, time: '10:45:10' },
-    { id: 2, type: 'system', message: t('liveAuction.auctionOpenedMsg'), time: '10:30:00' },
-    { id: 3, type: 'bid', user: t('liveAuction.user2'), amount: 2500000, time: '10:46:22' },
-  ]);
+export const LiveAuctionPage: React.FC<LiveAuctionPageProps> = ({ onNavigate, auctionId }) => {
+ const { t } = useTranslation();
+ const [isMuted, setIsMuted] = useState(true);
+ const [activeTab, setActiveTab] = useState('details');
+ const [bidAmount, setBidAmount] = useState<string>('');
+ const [bidError, setBidError] = useState<string | null>(null);
+ const [submitting, setSubmitting] = useState(false);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+ // ─── Real-time data (or demo fallback) ─────────────────────────────────
+ // When auctionId is provided, connect to the Go WebSocket. Otherwise run
+ // in demo mode with a simulated bid stream so the page works standalone.
+ const liveMode = Boolean(auctionId);
+ const { state, connectionStatus, lastEvent } = useAuctionLive(auctionId, {
+   enabled: liveMode,
+ });
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+ // Demo-mode local state — only used when auctionId is missing
+ const [demoBid, setDemoBid] = useState(2500000);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [logs]);
+ const currentBid = liveMode ? (state.currentBid ?? state.startingBid ?? 0) : demoBid;
+ const bidIncrement = liveMode ? (state.bidIncrement ?? 10000) : 10000;
+ const minNextBid = currentBid + bidIncrement;
 
-  // Simulate incoming bids
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (Math.random() > 0.7) {
-        const newBid = currentBid + 50000;
-        setCurrentBid(newBid);
-        setLogs(prev => [...prev, {
-          id: Date.now(),
-          type: 'bid',
-          user: `${t('liveAuction.bidderPrefix')} ${Math.floor(Math.random() * 1000)}`,
-          amount: newBid,
-          time: new Date().toLocaleTimeString('ar-SA')
-        }]);
-      }
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [currentBid]);
+ // Bid log: derived from WebSocket events in live mode, simulated in demo
+ const [logs, setLogs] = useState<LogItem[]>([
+   { id: 'sys-1', type: 'system', message: t('liveAuction.auctionOpenedMsg'), time: '10:30:00' },
+ ]);
 
-  const handleBid = (amount: number) => {
-    const newBid = currentBid + amount;
-    setCurrentBid(newBid);
-    setLogs(prev => [...prev, {
-      id: Date.now(),
-      type: 'bid',
-      user: t('liveAuction.you'),
-      amount: newBid,
-      time: new Date().toLocaleTimeString('ar-SA')
-    }]);
-  };
+ const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  return (
-    <div className="pt-36 min-h-screen bg-gray-50 pb-20">
+ const scrollToBottom = () => {
+   messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+ };
 
-      {/* Breadcrumbs */}
-      <div className="bg-white border-b border-gray-200 py-4 mb-6">
-        <div className="w-full max-w-[1440px] mx-auto px-4 flex items-center gap-2 text-sm text-gray-500">
-           <span className="cursor-pointer hover:text-[#47CCD0]" onClick={() => onNavigate('home')}>{t('liveAuction.breadcrumbHome')}</span>
-           <ChevronLeft size={14} />
-           <span className="cursor-pointer hover:text-[#47CCD0]" onClick={() => onNavigate('auctions')}>{t('liveAuction.breadcrumbAuctions')}</span>
-           <ChevronLeft size={14} />
-           <span className="text-gray-900 font-bold">{t('liveAuction.breadcrumbCurrent')}</span>
-        </div>
-      </div>
+ useEffect(() => {
+   scrollToBottom();
+ }, [logs]);
 
-      <div className="w-full max-w-[1440px] mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+ // Append bid events from WebSocket to the log
+ useEffect(() => {
+   if (!liveMode || !lastEvent || lastEvent.type !== 'bid_placed') return;
+   const ev = lastEvent as BidPlacedEvent;
+   setLogs(prev => [...prev, {
+     id: ev.bid_id,
+     type: 'bid',
+     user: ev.bidder_masked_name,
+     amount: ev.amount,
+     time: new Date(ev.created_at).toLocaleTimeString('ar-SA'),
+   }]);
+   if (ev.caused_extension) {
+     setLogs(prev => [...prev, {
+       id: `ext-${ev.bid_id}`,
+       type: 'system',
+       message: t('liveAuction.timeExtended', { defaultValue: 'تم تمديد المزاد دقيقتين' }),
+       time: new Date().toLocaleTimeString('ar-SA'),
+     }]);
+   }
+ }, [lastEvent, liveMode, t]);
 
-          {/* --- LEFT COLUMN (Video & Info) --- */}
-          <div className="lg:col-span-8 space-y-6">
+ // Demo simulation — only when no auctionId provided
+ useEffect(() => {
+   if (liveMode) return;
+   const interval = setInterval(() => {
+     if (Math.random() > 0.7) {
+       const newBid = demoBid + 50000;
+       setDemoBid(newBid);
+       setLogs(prev => [...prev, {
+         id: Date.now(),
+         type: 'bid',
+         user: `${t('liveAuction.bidderPrefix')} ${Math.floor(Math.random() * 1000)}`,
+         amount: newBid,
+         time: new Date().toLocaleTimeString('ar-SA')
+       }]);
+     }
+   }, 5000);
+   return () => clearInterval(interval);
+ }, [liveMode, demoBid, t]);
 
-            {/* Video Player */}
-            <div className="relative aspect-video bg-black rounded-2xl overflow-hidden group shadow-lg">
-              <img
-                src="https://images.unsplash.com/photo-1726087163038-2910e4de29e5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb21tZXJjaWFsJTIwbGFuZCUyMGNvbnN0cnVjdGlvbiUyMHNpdGUlMjByaXlhZGglMjBzYXVkaSUyMGFyYWJpYXxlbnwxfHx8fDE3NjQ2MzUyNDd8MA&ixlib=rb-4.1.0&q=80&w=1080"
-                alt="Live Stream"
-                className="w-full h-full object-cover opacity-80"
-              />
+ // ─── Bid handler: real API call in live mode, local update in demo ─────
+ const handleBid = async (increment: number) => {
+   const amount = currentBid + increment;
+   setBidError(null);
 
-              {/* Overlays */}
-              <div className="absolute top-4 end-4 flex items-center gap-2 z-10">
-                <div className="bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-2 animate-pulse">
-                  <span className="w-2 h-2 bg-white rounded-full"></span>
-                  {t('liveAuction.liveBadge')}
-                </div>
-                <div className="bg-black/50 backdrop-blur-md text-white px-3 py-1 rounded-lg text-xs flex items-center gap-2">
-                  <Eye size={14} /> {t('liveAuction.viewerCount')}
-                </div>
-              </div>
+   if (!liveMode) {
+     // Demo mode
+     setDemoBid(amount);
+     setLogs(prev => [...prev, {
+       id: Date.now(),
+       type: 'bid',
+       user: t('liveAuction.you'),
+       amount,
+       time: new Date().toLocaleTimeString('ar-SA')
+     }]);
+     return;
+   }
 
-              <button
-                onClick={() => setIsMuted(!isMuted)}
-                className="absolute bottom-4 start-4 bg-black/50 hover:bg-black/70 backdrop-blur-md text-white p-2 rounded-lg transition-colors z-10"
-              >
-                {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-              </button>
+   // Live mode: call backend
+   if (!auctionId) return;
+   if (amount < minNextBid) {
+     setBidError(t('liveAuction.bidTooLow', { defaultValue: 'مبلغ المزايدة منخفض' }));
+     return;
+   }
+   setSubmitting(true);
+   try {
+     await placeBid(auctionId, amount);
+     // Server will broadcast via WS → log appended automatically
+   } catch (err: any) {
+     // Map server error codes → user-facing Arabic messages
+     const code = err.code || 'UNKNOWN';
+     const messageMap: Record<string, string> = {
+       UNAUTHENTICATED: 'يجب تسجيل الدخول أولاً',
+       NO_DEPOSIT:      'يجب دفع الضمان قبل المزايدة',
+       BID_TOO_LOW:     'المبلغ أقل من الحد الأدنى',
+       NOT_LIVE:        'المزاد غير نشط حالياً',
+       ENDED:           'انتهى المزاد',
+       IS_SELLER:       'لا يمكن للبائع المزايدة على مزاده',
+       DUPLICATE_KEY:   'تم استلام مزايدتك مسبقاً',
+       DISQUALIFIED:    'الحساب غير مؤهل للمزايدة',
+       MAX_EXTENSIONS:  'تم الوصول للحد الأقصى من التمديدات',
+       RATE_LIMITED:    'مزايدة سريعة جداً، انتظر لحظة',
+     };
+     setBidError(messageMap[code] || (err.message || 'فشل تسجيل المزايدة'));
+   } finally {
+     setSubmitting(false);
+   }
+ };
 
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                 {/* Play Button Placeholder if needed, but for "Live" it usually auto-plays */}
-              </div>
-            </div>
+ // ─── Live timer countdown ──────────────────────────────────────────────
+ const remainingTime = useRemainingTime(state.endsAt, state.clockSkewMs);
 
-            {/* Property Header Info */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm relative overflow-hidden">
-               <div className="absolute top-0 start-0 w-full h-1 bg-gradient-to-r from-[#47CCD0] to-transparent"></div>
+ return (
+ <div className="pt-36 min-h-screen bg-gray-50 pb-20">
 
-               <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-6">
-                 <div>
-                   <div className="flex items-center gap-2 text-gray-500 text-sm mb-2">
-                     <span className="bg-gray-100 px-2 py-0.5 rounded text-xs font-mono">MZ-1024</span>
-                     <span>•</span>
-                     <span className="text-[#47CCD0]">{t('liveAuction.propertyType')}</span>
-                   </div>
-                   <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('liveAuction.propertyTitle')}</h1>
-                   <p className="text-gray-500 flex items-center gap-2">
-                     <MapPin size={16} className="text-[#47CCD0]" /> {t('liveAuction.propertyLocation')}
-                   </p>
-                 </div>
+ {/* Breadcrumbs */}
+ <div className="bg-white border-b border-gray-200 py-4 mb-6">
+ <div className="w-full max-w-[1440px] mx-auto px-4 flex items-center gap-2 text-sm text-gray-500">
+ <span className="cursor-pointer hover:text-[#47CCD0]" onClick={() => onNavigate('home')}>{t('liveAuction.breadcrumbHome')}</span>
+ <ChevronLeft size={14} />
+ <span className="cursor-pointer hover:text-[#47CCD0]" onClick={() => onNavigate('auctions')}>{t('liveAuction.breadcrumbAuctions')}</span>
+ <ChevronLeft size={14} />
+ <span className="text-gray-900 font-bold">{t('liveAuction.breadcrumbCurrent')}</span>
+ </div>
+ </div>
 
-                 <div className="flex gap-2">
-                   <button className="p-3 bg-gray-50 rounded-xl text-gray-600 hover:bg-[#47CCD0] hover:text-white transition-colors">
-                     <Share2 size={20} />
-                   </button>
-                   <button className="p-3 bg-gray-50 rounded-xl text-gray-600 hover:text-red-500 transition-colors">
-                     <Heart size={20} />
-                   </button>
-                 </div>
-               </div>
+ <div className="w-full max-w-[1440px] mx-auto px-4">
+ <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-               {/* Key Specs */}
-               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-6 border-y border-gray-100">
-                  <div className="text-center">
-                     <p className="text-gray-400 text-xs mb-1">{t('liveAuction.specArea')}</p>
-                     <p className="font-bold text-lg flex items-center justify-center gap-1">
-                        2,500 <span className="text-xs font-normal text-gray-500">{t('liveAuction.sqm')}</span>
-                     </p>
-                  </div>
-                  <div className="text-center border-e border-gray-100">
-                     <p className="text-gray-400 text-xs mb-1">{t('liveAuction.specDeedType')}</p>
-                     <p className="font-bold text-lg">{t('liveAuction.specDeedValue')}</p>
-                  </div>
-                  <div className="text-center border-e border-gray-100">
-                     <p className="text-gray-400 text-xs mb-1">{t('liveAuction.specUsage')}</p>
-                     <p className="font-bold text-lg">{t('liveAuction.specUsageValue')}</p>
-                  </div>
-                  <div className="text-center border-e border-gray-100">
-                     <p className="text-gray-400 text-xs mb-1">{t('liveAuction.specFacing')}</p>
-                     <p className="font-bold text-lg">{t('liveAuction.specFacingValue')}</p>
-                  </div>
-               </div>
+ {/* --- LEFT COLUMN (Video & Info) --- */}
+ <div className="lg:col-span-8 space-y-6">
 
-               {/* Tabs */}
-               <div className="mt-6">
-                  <div className="flex border-b border-gray-200 mb-4">
-                    {['details', 'files', 'location'].map((tab) => (
-                      <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`px-6 py-3 text-sm font-bold relative ${activeTab === tab ? 'text-[#47CCD0]' : 'text-gray-500 hover:text-gray-800'}`}
-                      >
-                        {tab === 'details' && t('liveAuction.tabDetails')}
-                        {tab === 'files' && t('liveAuction.tabFiles')}
-                        {tab === 'location' && t('liveAuction.tabLocation')}
-                        {activeTab === tab && (
-                          <motion.div layoutId="activeTab" className="absolute bottom-0 start-0 end-0 h-0.5 bg-[#47CCD0]" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
+ {/* Video Player */}
+ <div className="relative aspect-video bg-black rounded-2xl overflow-hidden group shadow-lg">
+ <img
+ src="https://images.unsplash.com/photo-1726087163038-2910e4de29e5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb21tZXJjaWFsJTIwbGFuZCUyMGNvbnN0cnVjdGlvbiUyMHNpdGUlMjByaXlhZGglMjBzYXVkaSUyMGFyYWJpYXxlbnwxfHx8fDE3NjQ2MzUyNDd8MA&ixlib=rb-4.1.0&q=80&w=1080"
+ alt="Live Stream"
+ className="w-full h-full object-cover opacity-80"
+ />
 
-                  <div className="min-h-[200px] text-gray-600 text-sm leading-relaxed">
-                    {activeTab === 'details' && (
-                      <p>
-                        {t('liveAuction.detailsText')}
-                      </p>
-                    )}
-                    {activeTab === 'files' && (
-                      <div className="space-y-3">
-                         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
-                            <div className="flex items-center gap-3">
-                               <FileText size={20} className="text-[#47CCD0]" />
-                               <span>{t('liveAuction.file1Name')}</span>
-                            </div>
-                            <button className="text-xs text-[#47CCD0] font-bold">{t('liveAuction.download')}</button>
-                         </div>
-                         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
-                            <div className="flex items-center gap-3">
-                               <FileText size={20} className="text-[#47CCD0]" />
-                               <span>{t('liveAuction.file2Name')}</span>
-                            </div>
-                            <button className="text-xs text-[#47CCD0] font-bold">{t('liveAuction.download')}</button>
-                         </div>
-                      </div>
-                    )}
-                  </div>
-               </div>
-            </div>
+ {/* Overlays */}
+ <div className="absolute top-4 end-4 flex items-center gap-2 z-10">
+ <div className="bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-2 animate-pulse">
+ <span className="w-2 h-2 bg-white rounded-full"></span>
+ {t('liveAuction.liveBadge')}
+ </div>
+ <div className="bg-black/50 backdrop-blur-md text-white px-3 py-1 rounded-lg text-xs flex items-center gap-2">
+ <Eye size={14} /> {t('liveAuction.viewerCount')}
+ </div>
+ </div>
 
-          </div>
+ <button
+ onClick={() => setIsMuted(!isMuted)}
+ className="absolute bottom-4 start-4 bg-black/50 hover:bg-black/70 backdrop-blur-md text-white p-2 rounded-lg transition-colors z-10"
+ >
+ {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+ </button>
 
-          {/* --- RIGHT COLUMN (Bidding Panel) --- */}
-          <div className="lg:col-span-4 space-y-4">
+ <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+ {/* Play Button Placeholder if needed, but for "Live" it usually auto-plays */}
+ </div>
+ </div>
 
-            {/* 1. Timer & Status */}
-            <div className="bg-[#1a1a1a] text-white p-4 rounded-xl flex items-center justify-between shadow-lg">
-               <div className="flex items-center gap-2">
-                 <Radio size={18} className="text-red-500 animate-pulse" />
-                 <span className="font-bold">{t('liveAuction.onAirLabel')}</span>
-               </div>
-               <div className="flex items-center gap-2 font-mono text-xl text-[#47CCD0]">
-                 <Clock size={18} />
-                 <span>00:45:20</span>
-               </div>
-            </div>
+ {/* Property Header Info */}
+ <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm relative overflow-hidden">
+ <div className="absolute top-0 start-0 w-full h-1 bg-gradient-to-r from-[#47CCD0] to-transparent"></div>
 
-            {/* 2. Current Price */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm text-center">
-               <div className="flex flex-col items-center gap-1 mb-2">
-                 <p className="text-gray-400 text-xs line-through decoration-red-400 flex items-center gap-1">{t('liveAuction.openingPrice')} <RiyalSymbol className="w-3 h-3 text-gray-400" /></p>
-                 <div className="flex items-center gap-2">
-                   <p className="text-gray-500 text-sm font-bold">{t('liveAuction.currentPriceLabel')}</p>
-                   <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded">{t('liveAuction.vatIncluded')}</span>
-                 </div>
-               </div>
-               <div className="text-4xl font-black text-[#47CCD0] flex items-center justify-center gap-2 mt-3 mb-3 font-mono tracking-tight">
-                 {currentBid.toLocaleString()}
-                 <RiyalSymbol className="w-5 h-5 text-gray-600" />
-               </div>
-               <div className="inline-flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-xs text-gray-600">
-                 <span className="flex items-center gap-1">{t('liveAuction.minBidLabel')} <RiyalSymbol className="w-2.5 h-2.5 text-gray-500" /></span>
-               </div>
-            </div>
+ <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-6">
+ <div>
+ <div className="flex items-center gap-2 text-gray-500 text-sm mb-2">
+ <span className="bg-gray-100 px-2 py-0.5 rounded text-xs font-mono">MZ-1024</span>
+ <span>•</span>
+ <span className="text-[#47CCD0]">{t('liveAuction.propertyType')}</span>
+ </div>
+ <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('liveAuction.propertyTitle')}</h1>
+ <p className="text-gray-500 flex items-center gap-2">
+ <MapPin size={16} className="text-[#47CCD0]" /> {t('liveAuction.propertyLocation')}
+ </p>
+ </div>
 
-            {/* 3. Bid Log (Chat style) */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col h-[400px]">
-               <div className="p-4 bg-gray-50 border-b border-gray-100 font-bold text-sm flex justify-between items-center">
-                 <span>{t('liveAuction.bidLogTitle')}</span>
-                 <span className="text-xs font-normal text-gray-500">{logs.length} {t('liveAuction.operations')}</span>
-               </div>
+ <div className="flex gap-2">
+ <button className="p-3 bg-gray-50 rounded-xl text-gray-600 hover:bg-[#47CCD0] hover:text-white transition-colors">
+ <Share2 size={20} />
+ </button>
+ <button className="p-3 bg-gray-50 rounded-xl text-gray-600 hover:text-red-500 transition-colors">
+ <Heart size={20} />
+ </button>
+ </div>
+ </div>
 
-               <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-                 {logs.map((log) => (
-                   <motion.div
-                     key={log.id}
-                     initial={{ opacity: 0, y: 10 }}
-                     animate={{ opacity: 1, y: 0 }}
-                     className={`flex items-start gap-3 ${log.type === 'system' ? 'justify-center' : ''}`}
-                   >
-                     {log.type === 'system' ? (
-                       <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-1 rounded-full">{log.message}</span>
-                     ) : (
-                       <>
-                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${log.user === t('liveAuction.you') ? 'bg-[#47CCD0] text-white' : 'bg-gray-200 text-gray-600'}`}>
-                           {log.user === t('liveAuction.you') ? <User size={14}/> : log.user.charAt(0)}
-                         </div>
-                         <div className="flex-1">
-                           <div className="flex items-center justify-between">
-                             <span className="text-xs font-bold text-gray-900">{log.user}</span>
-                             <span className="text-[10px] text-gray-400" dir="ltr">{log.time}</span>
-                           </div>
-                           <div className="text-sm font-mono text-[#47CCD0] font-bold flex items-center justify-end gap-1">
-                             {log.amount?.toLocaleString()} <RiyalSymbol className="w-3 h-3" />
-                           </div>
-                         </div>
-                       </>
-                     )}
-                   </motion.div>
-                 ))}
-                 <div ref={messagesEndRef} />
-               </div>
-            </div>
+ {/* Key Specs */}
+ <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-6 border-y border-gray-100">
+ <div className="text-center">
+ <p className="text-gray-400 text-xs mb-1">{t('liveAuction.specArea')}</p>
+ <p className="font-bold text-lg flex items-center justify-center gap-1">
+ 2,500 <span className="text-xs font-normal text-gray-500">{t('liveAuction.sqm')}</span>
+ </p>
+ </div>
+ <div className="text-center border-e border-gray-100">
+ <p className="text-gray-400 text-xs mb-1">{t('liveAuction.specDeedType')}</p>
+ <p className="font-bold text-lg">{t('liveAuction.specDeedValue')}</p>
+ </div>
+ <div className="text-center border-e border-gray-100">
+ <p className="text-gray-400 text-xs mb-1">{t('liveAuction.specUsage')}</p>
+ <p className="font-bold text-lg">{t('liveAuction.specUsageValue')}</p>
+ </div>
+ <div className="text-center border-e border-gray-100">
+ <p className="text-gray-400 text-xs mb-1">{t('liveAuction.specFacing')}</p>
+ <p className="font-bold text-lg">{t('liveAuction.specFacingValue')}</p>
+ </div>
+ </div>
 
-            {/* 4. Controls */}
-            <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm sticky bottom-4">
-              <div className="grid grid-cols-2 gap-2 mb-3">
-                 <button onClick={() => handleBid(10000)} className="py-2 bg-gray-50 hover:bg-gray-100 text-[#47CCD0] font-bold rounded-lg border border-gray-200 hover:border-[#47CCD0] transition-all text-sm">
-                   + 10,000
-                 </button>
-                 <button onClick={() => handleBid(50000)} className="py-2 bg-gray-50 hover:bg-gray-100 text-[#47CCD0] font-bold rounded-lg border border-gray-200 hover:border-[#47CCD0] transition-all text-sm">
-                   + 50,000
-                 </button>
-              </div>
+ {/* Tabs */}
+ <div className="mt-6">
+ <div className="flex border-b border-gray-200 mb-4">
+ {['details', 'files', 'location'].map((tab) => (
+ <button
+ key={tab}
+ onClick={() => setActiveTab(tab)}
+ className={`px-6 py-3 text-sm font-bold relative ${activeTab === tab ? 'text-[#47CCD0]' : 'text-gray-500 hover:text-gray-800'}`}
+ >
+ {tab === 'details' && t('liveAuction.tabDetails')}
+ {tab === 'files' && t('liveAuction.tabFiles')}
+ {tab === 'location' && t('liveAuction.tabLocation')}
+ {activeTab === tab && (
+ <motion.div layoutId="activeTab" className="absolute bottom-0 start-0 end-0 h-0.5 bg-[#47CCD0]" />
+ )}
+ </button>
+ ))}
+ </div>
 
-              <div className="flex gap-2 mb-3">
-                 <input
-                   type="number"
-                   min="0"
-                   placeholder={t('liveAuction.customAmountPlaceholder')}
-                   value={bidAmount}
-                   onChange={(e) => {
-                     let val = Number(e.target.value);
-                     if (val < 0) val = 0;
-                     setBidAmount(val ? val.toString() : '');
-                   }}
-                   className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#47CCD0]"
-                 />
-              </div>
+ <div className="min-h-[200px] text-gray-600 text-sm leading-relaxed">
+ {activeTab === 'details' && (
+ <p>
+ {t('liveAuction.detailsText')}
+ </p>
+ )}
+ {activeTab === 'files' && (
+ <div className="space-y-3">
+ <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+ <div className="flex items-center gap-3">
+ <FileText size={20} className="text-[#47CCD0]" />
+ <span>{t('liveAuction.file1Name')}</span>
+ </div>
+ <button className="text-xs text-[#47CCD0] font-bold">{t('liveAuction.download')}</button>
+ </div>
+ <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+ <div className="flex items-center gap-3">
+ <FileText size={20} className="text-[#47CCD0]" />
+ <span>{t('liveAuction.file2Name')}</span>
+ </div>
+ <button className="text-xs text-[#47CCD0] font-bold">{t('liveAuction.download')}</button>
+ </div>
+ </div>
+ )}
+ </div>
+ </div>
+ </div>
 
-              <button
-                onClick={() => { if(bidAmount) handleBid(Number(bidAmount)); setBidAmount(''); }}
-                className="w-full bg-[#47CCD0] text-white py-3 rounded-xl font-bold shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 hover:-translate-y-1 transition-all flex items-center justify-center gap-2"
-              >
-                <Gavel size={20} />
-                {t('liveAuction.confirmBid')}
-              </button>
+ </div>
 
-              <p className="text-[10px] text-gray-400 text-center mt-3">
-                {t('liveAuction.bidDisclaimer')}
-              </p>
-            </div>
+ {/* --- RIGHT COLUMN (Bidding Panel) --- */}
+ <div className="lg:col-span-4 space-y-4">
 
-          </div>
+ {/* 1. Timer & Status */}
+ <div className="bg-[#1a1a1a] text-white p-4 rounded-xl flex items-center justify-between shadow-lg">
+ <div className="flex items-center gap-2">
+ <Radio size={18} className="text-red-500 animate-pulse" />
+ <span className="font-bold">{t('liveAuction.onAirLabel')}</span>
+ </div>
+ <div className="flex items-center gap-2 font-mono text-xl text-[#47CCD0]">
+ <Clock size={18} />
+ <span>{liveMode ? remainingTime : '00:45:20'}</span>
+ {liveMode && connectionStatus === 'open' && (
+   <span className="w-2 h-2 bg-[#47CCD0] rounded-full animate-pulse" title={t('liveAuction.connected', { defaultValue: 'متصل' })} />
+ )}
+ {liveMode && connectionStatus !== 'open' && (
+   <span className="w-2 h-2 bg-amber-400 rounded-full" title={t('liveAuction.reconnecting', { defaultValue: 'جاري الاتصال...' })} />
+ )}
+ </div>
+ </div>
 
-        </div>
-      </div>
-    </div>
-  );
+ {/* 2. Current Price */}
+ <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm text-center">
+ <div className="flex flex-col items-center gap-1 mb-2">
+ <p className="text-gray-400 text-xs line-through decoration-red-400 flex items-center gap-1">{t('liveAuction.openingPrice')} <RiyalSymbol className="w-3 h-3 text-gray-400" /></p>
+ <div className="flex items-center gap-2">
+ <p className="text-gray-500 text-sm font-bold">{t('liveAuction.currentPriceLabel')}</p>
+ <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded">{t('liveAuction.vatIncluded')}</span>
+ </div>
+ </div>
+ <div className="text-4xl font-black text-[#47CCD0] flex items-center justify-center gap-2 mt-3 mb-3 font-mono tracking-tight">
+ {currentBid.toLocaleString()}
+ <RiyalSymbol className="w-5 h-5 text-gray-600" />
+ </div>
+ <div className="inline-flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-xs text-gray-600">
+ <span className="flex items-center gap-1">{t('liveAuction.minBidLabel')} <RiyalSymbol className="w-2.5 h-2.5 text-gray-500" /></span>
+ </div>
+ </div>
+
+ {/* 3. Bid Log (Chat style) */}
+ <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col h-[400px]">
+ <div className="p-4 bg-gray-50 border-b border-gray-100 font-bold text-sm flex justify-between items-center">
+ <span>{t('liveAuction.bidLogTitle')}</span>
+ <span className="text-xs font-normal text-gray-500">{logs.length} {t('liveAuction.operations')}</span>
+ </div>
+
+ <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+ {logs.map((log) => (
+ <motion.div
+ key={log.id}
+ initial={{ opacity: 0, y: 10 }}
+ animate={{ opacity: 1, y: 0 }}
+ className={`flex items-start gap-3 ${log.type === 'system' ? 'justify-center' : ''}`}
+ >
+ {log.type === 'system' ? (
+ <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-1 rounded-full">{log.message}</span>
+ ) : (
+ <>
+ <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${log.user === t('liveAuction.you') ? 'bg-[#47CCD0] text-white' : 'bg-gray-200 text-gray-600'}`}>
+ {log.user === t('liveAuction.you') ? <User size={14}/> : log.user.charAt(0)}
+ </div>
+ <div className="flex-1">
+ <div className="flex items-center justify-between">
+ <span className="text-xs font-bold text-gray-900">{log.user}</span>
+ <span className="text-[10px] text-gray-400" dir="ltr">{log.time}</span>
+ </div>
+ <div className="text-sm font-mono text-[#47CCD0] font-bold flex items-center justify-end gap-1">
+ {log.amount?.toLocaleString()} <RiyalSymbol className="w-3 h-3" />
+ </div>
+ </div>
+ </>
+ )}
+ </motion.div>
+ ))}
+ <div ref={messagesEndRef} />
+ </div>
+ </div>
+
+ {/* 4. Controls */}
+ <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm sticky bottom-4">
+ <div className="grid grid-cols-2 gap-2 mb-3">
+ <button onClick={() => handleBid(10000)} className="py-2 bg-gray-50 hover:bg-gray-100 text-[#47CCD0] font-bold rounded-lg border border-gray-200 hover:border-[#47CCD0] transition-all text-sm">
+ + 10,000
+ </button>
+ <button onClick={() => handleBid(50000)} className="py-2 bg-gray-50 hover:bg-gray-100 text-[#47CCD0] font-bold rounded-lg border border-gray-200 hover:border-[#47CCD0] transition-all text-sm">
+ + 50,000
+ </button>
+ </div>
+
+ <div className="flex gap-2 mb-3">
+ <input
+ type="number"
+ min="0"
+ placeholder={t('liveAuction.customAmountPlaceholder')}
+ value={bidAmount}
+ onChange={(e) => {
+ let val = Number(e.target.value);
+ if (val < 0) val = 0;
+ setBidAmount(val ? val.toString() : '');
+ }}
+ className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#47CCD0]"
+ />
+ </div>
+
+ {bidError && (
+   <motion.div
+     initial={{ opacity: 0, y: -8 }}
+     animate={{ opacity: 1, y: 0 }}
+     className="mb-3 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-xs font-bold text-center"
+   >
+     {bidError}
+   </motion.div>
+ )}
+
+ <button
+ onClick={() => {
+   const amt = bidAmount ? Number(bidAmount) : bidIncrement;
+   handleBid(amt);
+   setBidAmount('');
+ }}
+ disabled={submitting}
+ className="w-full bg-[#47CCD0] text-white py-3 rounded-xl font-bold hover:bg-[#3dbec2] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+ >
+ <Gavel size={20} />
+ {submitting
+   ? t('liveAuction.submitting', { defaultValue: 'جاري الإرسال...' })
+   : t('liveAuction.confirmBid')}
+ </button>
+
+ <p className="text-[10px] text-gray-400 text-center mt-3">
+ {t('liveAuction.bidDisclaimer')}
+ </p>
+ </div>
+
+ </div>
+
+ </div>
+ </div>
+ </div>
+ );
 };
+
+// ─── Helper: countdown using server clock ──────────────────────────────────
+//
+// Ticks every 250ms, displays remaining time as HH:MM:SS or MM:SS for short.
+// Corrects for client/server clock skew using the snapshot's server_time.
+function useRemainingTime(endsAtIso: string | null, clockSkewMs: number): string {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!endsAtIso) return;
+    const id = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(id);
+  }, [endsAtIso]);
+
+  if (!endsAtIso) return '--:--:--';
+  const endMs = new Date(endsAtIso).getTime();
+  // server_clock = client_clock + clockSkewMs → adjust here
+  const remaining = Math.max(0, endMs - (now + clockSkewMs));
+
+  const totalSec = Math.floor(remaining / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+  if (h > 0) return `${pad(h)}:${pad(m)}:${pad(s)}`;
+  return `${pad(m)}:${pad(s)}`;
+}

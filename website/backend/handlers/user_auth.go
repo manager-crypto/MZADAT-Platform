@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/mzadat/backend/auth"
 	"github.com/mzadat/backend/db"
 	"github.com/mzadat/backend/sms"
-	"github.com/jackc/pgx/v5"
 )
 
 // ─── Error codes ─────────────────────────────────────────────────────────────
@@ -37,9 +37,9 @@ func jsonFieldError(w http.ResponseWriter, status int, field, code, message stri
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(map[string]any{
-		"error":   message,
-		"field":   field,
-		"code":    code,
+		"error": message,
+		"field": field,
+		"code":  code,
 	})
 }
 
@@ -163,11 +163,11 @@ func UserRegister(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(map[string]any{
-		"ok":             true,
-		"user_id":        userID,
-		"next":           "verify_phone",
-		"phone":          phone,
-		"message":        "registration successful; verify phone via OTP",
+		"ok":      true,
+		"user_id": userID,
+		"next":    "verify_phone",
+		"phone":   phone,
+		"message": "registration successful; verify phone via OTP",
 	})
 }
 

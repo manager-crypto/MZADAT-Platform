@@ -14,15 +14,15 @@ import (
 )
 
 type auditLogRow struct {
-	ID          string          `json:"id"`
-	AdminID     *string         `json:"admin_id"`
-	AdminEmail  *string         `json:"admin_email"`
-	Action      string          `json:"action"`
-	EntityType  string          `json:"entity_type"`
-	EntityID    *string         `json:"entity_id"`
-	Details     json.RawMessage `json:"details"`
-	IPAddress   *string         `json:"ip_address"`
-	CreatedAt   string          `json:"created_at"`
+	ID         string          `json:"id"`
+	AdminID    *string         `json:"admin_id"`
+	AdminEmail *string         `json:"admin_email"`
+	Action     string          `json:"action"`
+	EntityType string          `json:"entity_type"`
+	EntityID   *string         `json:"entity_id"`
+	Details    json.RawMessage `json:"details"`
+	IPAddress  *string         `json:"ip_address"`
+	CreatedAt  string          `json:"created_at"`
 }
 
 // AdminGetAuditLog handles GET /api/admin/audit-log

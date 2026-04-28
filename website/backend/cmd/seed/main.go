@@ -3,8 +3,9 @@
 // SUPER_ADMIN row. The bcrypt hashing is delegated to PostgreSQL's pgcrypto.
 //
 // Usage:
-//   go run ./cmd/seed
-//   ADMIN_SEED_EMAIL=foo@x.com ADMIN_SEED_PASSWORD=Secret123 go run ./cmd/seed
+//
+//	go run ./cmd/seed
+//	ADMIN_SEED_EMAIL=foo@x.com ADMIN_SEED_PASSWORD=Secret123 go run ./cmd/seed
 package main
 
 import (
