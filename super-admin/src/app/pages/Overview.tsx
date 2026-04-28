@@ -37,6 +37,7 @@ import { financeApi } from '../services/financeApi';
 import { auditApi } from '../services/auditApi';
 import { auctionsApi } from '../services/auctionsApi';
 import PageWrapper from '../components/PageWrapper';
+import { RiyalSymbol } from '../components/RiyalSymbol';
 
 // MZADAT brand palette
 const BRAND = {
@@ -61,13 +62,23 @@ export default function Overview() {
   const isAnyLoading = finance.loading || recentAudits.loading || auctions.loading;
   const hasError = finance.error || recentAudits.error || auctions.error;
 
-  const formatSAR = (n: number) =>
-    new Intl.NumberFormat(isAr ? 'ar-SA' : 'en-US', {
-      style: 'currency',
-      currency: 'SAR',
+  const formatSAR = (n: number) => {
+    // Format manually to avoid Intl's automatic currency symbol injection
+    // when using compact notation in ar-SA locale.
+    if (n >= 1_000_000_000) {
+      return `${(n / 1_000_000_000).toFixed(1).replace(/\.0$/, '')} ${language === 'ar' ? 'مليار' : 'B'}`;
+    }
+    if (n >= 1_000_000) {
+      return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')} ${language === 'ar' ? 'مليون' : 'M'}`;
+    }
+    if (n >= 1_000) {
+      return `${(n / 1_000).toFixed(1).replace(/\.0$/, '')} ${language === 'ar' ? 'ألف' : 'K'}`;
+    }
+    return new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
+      style: 'decimal',
       maximumFractionDigits: 0,
-      notation: n > 1_000_000 ? 'compact' : 'standard',
     }).format(n);
+  };
 
   // Build pie chart data from auction statuses
   const statusChartData = useMemo(() => {
@@ -145,7 +156,7 @@ export default function Overview() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <KPICard
           label={isAr ? 'القيمة الإجمالية للمزايدات' : 'Total Bids Value'}
-          value={finance.data ? formatSAR(finance.data.total_current_bids_sar) : '—'}
+          value={finance.data ? <span className="inline-flex items-baseline gap-1" style={{ direction: "ltr", unicodeBidi: "isolate" }}><span>{formatSAR(finance.data.total_current_bids_sar)}</span><RiyalSymbol className="inline-block w-[0.85em] h-[0.85em] align-[-0.08em]" /></span> : '—'}
           icon={DollarSign}
           gradient="from-[#47CCD0] to-[#5AC4BE]"
           trend={finance.data && finance.data.total_current_bids_sar > 0 ? '+12%' : undefined}

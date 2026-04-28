@@ -15,6 +15,7 @@ import { useTranslation } from '../context/TranslationContext';
 import { useApi } from '../hooks/useApi';
 import { financeApi } from '../services/financeApi';
 import PageWrapper from '../components/PageWrapper';
+import { RiyalSymbol } from '../components/RiyalSymbol';
 
 export default function FinancialOversight() {
   const { language } = useTranslation();
@@ -22,12 +23,23 @@ export default function FinancialOversight() {
 
   const { data, loading, error, refetch } = useApi(() => financeApi.getSummary());
 
-  const formatSAR = (n: number) =>
-    new Intl.NumberFormat(isAr ? 'ar-SA' : 'en-US', {
-      style: 'currency',
-      currency: 'SAR',
+  const formatSAR = (n: number) => {
+    // Format manually to avoid Intl's automatic currency symbol injection
+    // when using compact notation in ar-SA locale.
+    if (n >= 1_000_000_000) {
+      return `${(n / 1_000_000_000).toFixed(1).replace(/\.0$/, '')} ${language === 'ar' ? 'مليار' : 'B'}`;
+    }
+    if (n >= 1_000_000) {
+      return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')} ${language === 'ar' ? 'مليون' : 'M'}`;
+    }
+    if (n >= 1_000) {
+      return `${(n / 1_000).toFixed(1).replace(/\.0$/, '')} ${language === 'ar' ? 'ألف' : 'K'}`;
+    }
+    return new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
+      style: 'decimal',
       maximumFractionDigits: 0,
     }).format(n);
+  };
 
   return (
     <PageWrapper
@@ -74,21 +86,21 @@ export default function FinancialOversight() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
             <KPICard
               label={isAr ? 'إجمالي المزايدات الحالية' : 'Total Current Bids'}
-              value={formatSAR(data.total_current_bids_sar)}
+              value={<span className="inline-flex items-baseline gap-1" style={{ direction: "ltr", unicodeBidi: "isolate" }}><span>{formatSAR(data.total_current_bids_sar)}</span><RiyalSymbol className="inline-block w-[0.85em] h-[0.85em] align-[-0.08em]" /></span>}
               icon={Gavel}
               gradient="from-[#5AC4BE] to-[#47CCD0]"
               big
             />
             <KPICard
               label={isAr ? 'إجمالي الأسعار الابتدائية' : 'Total Starting Bids'}
-              value={formatSAR(data.total_starting_bids_sar)}
+              value={<span className="inline-flex items-baseline gap-1" style={{ direction: "ltr", unicodeBidi: "isolate" }}><span>{formatSAR(data.total_starting_bids_sar)}</span><RiyalSymbol className="inline-block w-[0.85em] h-[0.85em] align-[-0.08em]" /></span>}
               icon={TrendingUp}
               gradient="from-[#2B3D50] to-[#47CCD0]/40"
               big
             />
             <KPICard
               label={isAr ? 'متوسط سعر العقار' : 'Average Property Price'}
-              value={formatSAR(data.avg_price_total_sar)}
+              value={<span className="inline-flex items-baseline gap-1" style={{ direction: "ltr", unicodeBidi: "isolate" }}><span>{formatSAR(data.avg_price_total_sar)}</span><RiyalSymbol className="inline-block w-[0.85em] h-[0.85em] align-[-0.08em]" /></span>}
               icon={DollarSign}
               gradient="from-yellow-500 to-orange-500"
               big

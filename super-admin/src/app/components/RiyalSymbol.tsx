@@ -2,9 +2,15 @@ import React from 'react';
 
 interface RiyalSymbolProps {
   className?: string;
+  /** 'auto' inherits color, 'dark' = black, 'light' = white */
   theme?: 'auto' | 'dark' | 'light';
 }
 
+/**
+ * Saudi Riyal Symbol — official SAMA 2024 redesigned currency mark.
+ * Sized via 1em to scale with parent font-size.
+ * Inherits parent text color by default for automatic contrast adaptation.
+ */
 export const RiyalSymbol: React.FC<RiyalSymbolProps> = ({
   className = 'inline-block w-[0.9em] h-[0.9em] align-[-0.08em]',
   theme = 'auto',

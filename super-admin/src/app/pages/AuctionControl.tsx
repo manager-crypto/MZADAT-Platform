@@ -38,6 +38,7 @@ import { useTranslation } from '../context/TranslationContext';
 import { useApi } from '../hooks/useApi';
 import { auctionsApi, AuctionRow } from '../services/auctionsApi';
 import PageWrapper from '../components/PageWrapper';
+import { RiyalSymbol } from '../components/RiyalSymbol';
 
 type StatusFilter = 'all' | 'active' | 'sold' | 'auction' | 'pending';
 
@@ -131,12 +132,23 @@ export default function AuctionControl() {
     }
   };
 
-  const formatSAR = (n: number) =>
-    new Intl.NumberFormat(isAr ? 'ar-SA' : 'en-US', {
-      style: 'currency',
-      currency: 'SAR',
+  const formatSAR = (n: number) => {
+    // Format manually to avoid Intl's automatic currency symbol injection
+    // when using compact notation in ar-SA locale.
+    if (n >= 1_000_000_000) {
+      return `${(n / 1_000_000_000).toFixed(1).replace(/\.0$/, '')} ${language === 'ar' ? 'مليار' : 'B'}`;
+    }
+    if (n >= 1_000_000) {
+      return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')} ${language === 'ar' ? 'مليون' : 'M'}`;
+    }
+    if (n >= 1_000) {
+      return `${(n / 1_000).toFixed(1).replace(/\.0$/, '')} ${language === 'ar' ? 'ألف' : 'K'}`;
+    }
+    return new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
+      style: 'decimal',
       maximumFractionDigits: 0,
     }).format(n);
+  };
 
   return (
     <PageWrapper
@@ -250,13 +262,13 @@ export default function AuctionControl() {
                   <div>
                     <p className="text-xs text-gray-500 mb-1">{isAr ? 'المزايدة الحالية' : 'Current Bid'}</p>
                     <p className="font-bold text-[#5AC4BE]">
-                      {a.current_bid > 0 ? formatSAR(a.current_bid) : '—'}
+                      {a.current_bid > 0 ? <span className="inline-flex items-baseline gap-1" style={{ direction: "ltr", unicodeBidi: "isolate" }}><span>{formatSAR(a.current_bid)}</span><RiyalSymbol className="inline-block w-[0.85em] h-[0.85em] align-[-0.08em]" /></span> : '—'}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 mb-1">{isAr ? 'السعر الابتدائي' : 'Starting Bid'}</p>
                     <p className="font-medium">
-                      {a.starting_bid > 0 ? formatSAR(a.starting_bid) : '—'}
+                      {a.starting_bid > 0 ? <span className="inline-flex items-baseline gap-1" style={{ direction: "ltr", unicodeBidi: "isolate" }}><span>{formatSAR(a.starting_bid)}</span><RiyalSymbol className="inline-block w-[0.85em] h-[0.85em] align-[-0.08em]" /></span> : '—'}
                     </p>
                   </div>
                 </div>

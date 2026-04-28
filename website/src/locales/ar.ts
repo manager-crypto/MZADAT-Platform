@@ -3993,5 +3993,33 @@ export default {
     "contactTitle": "هل لديك استفسار؟",
     "contactSubtitle": "فريق حماية البيانات لدينا جاهز للإجابة على أسئلتك خلال 48 ساعة كحد أقصى.",
     "contactButton": "تواصل مع فريق الخصوصية"
+  },
+  "plansPage": {
+    "heroTitle": "المخططات العقارية",
+    "heroSubtitle": "اكتشف أفضل المخططات المعتمدة في المملكة",
+    "backButton": "رجوع",
+    "filterTypeDefault": "نوع المخطط",
+    "searchPlaceholder": "ابحث عن مدينة أو حي",
+    "wafiLicensed": "مرخّص وافي",
+    "statusAvailable": "متاح",
+    "statusSellingFast": "ينفد سريعاً",
+    "priceStartsFrom": "السعر يبدأ من",
+    "areaStartsFrom": "المساحة تبدأ من",
+    "viewDetails": "عرض التفاصيل",
+    "cityAll": "كل المدن",
+    "cityRiyadh": "الرياض",
+    "cityMakkah": "مكة المكرمة",
+    "cityJeddah": "جدة",
+    "cityDammam": "الدمام",
+    "cityQassim": "القصيم",
+    "scheme1Title": "مخطط الياسمين",
+    "scheme1Location": "حي الياسمين، الرياض",
+    "scheme1Area": "500 - 750 م²",
+    "scheme2Title": "مخطط الملقا",
+    "scheme2Location": "حي الملقا، الرياض",
+    "scheme2Area": "400 - 600 م²",
+    "scheme3Title": "مخطط النرجس",
+    "scheme3Location": "حي النرجس، الرياض",
+    "scheme3Area": "600 - 900 م²"
   }
 };
