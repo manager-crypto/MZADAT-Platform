@@ -527,18 +527,25 @@ export const AppContent: React.FC = () => {
 };
 
 // ==================== ROUTER SETUP ====================
-const router = createBrowserRouter([
+const router = createBrowserRouter(
+ [
  {
  path: '*',
  Component: AppContent,
  },
-]);
+ ],
+ {
+ future: {
+ v7_relativeSplatPath: true,
+ },
+ },
+);
 
 // ==================== MAIN APP ====================
 const App: React.FC = () => {
  return (
  <ErrorBoundary>
- <RouterProvider router={router} />
+ <RouterProvider router={router} future={{ v7_startTransition: true }} />
  </ErrorBoundary>
  );
 };

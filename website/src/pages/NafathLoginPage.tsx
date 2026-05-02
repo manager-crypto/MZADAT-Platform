@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { BackButton } from '../components/ui/BackButton';
-import nafathLogoImage from 'figma:asset/331135c935a627d4be1bdb0d7f741419310e7469.png';
+import { AuthServices, ApiError } from '../services/apiClient';
 
 interface NafathLoginPageProps {
  onNavigate: (page: string) => void;
- onLoginSuccess?: (data: any) => void;
 }
 
-export const NafathLoginPage: React.FC<NafathLoginPageProps> = ({ onNavigate, onLoginSuccess }) => {
+export const NafathLoginPage: React.FC<NafathLoginPageProps> = ({ onNavigate }) => {
  const [nationalId, setNationalId] = useState('');
  const [isLoading, setIsLoading] = useState(false);
  const [error, setError] = useState('');
 
- const handleSubmit = (e: React.FormEvent) => {
+ const handleSubmit = async (e: React.FormEvent) => {
  e.preventDefault();
  setError('');
 
@@ -28,12 +27,31 @@ export const NafathLoginPage: React.FC<NafathLoginPageProps> = ({ onNavigate, on
  }
 
  setIsLoading(true);
- // Simulate API call to Nafath
- setTimeout(() => {
- setIsLoading(false);
- // Navigate to verification page with the random number
+ try {
+ const res = await AuthServices.initiateNafath(nationalId);
+ sessionStorage.setItem(
+ 'nafath_request',
+ JSON.stringify({
+ request_id: res.request_id,
+ random_number: res.random_number,
+ expires_at: res.expires_at,
+ national_id: nationalId,
+ }),
+ );
  onNavigate('nafath-verification');
- }, 1500);
+ } catch (err) {
+ const msg =
+ err instanceof ApiError
+ ? err.status === 422
+ ? 'رقم الهوية غير صالح'
+ : err.status === 408
+ ? 'انتهت مهلة الاتصال — تحقق من الشبكة'
+ : 'تعذّر الاتصال بنفاذ، حاول مجدداً'
+ : 'حدث خطأ غير متوقع';
+ setError(msg);
+ } finally {
+ setIsLoading(false);
+ }
  };
 
  return (

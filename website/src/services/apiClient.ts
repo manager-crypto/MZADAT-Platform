@@ -9,10 +9,11 @@
 
 const env = (import.meta as any).env ?? {};
 
-const GO_AUTH_URL = env.VITE_GO_AUTH_URL || 'https://api.mzadat.com/auth';
+const API_URL = env.VITE_API_URL || 'http://localhost:8080';
+const GO_AUTH_URL = `${API_URL}/api/auth`;
+const GO_PAYMENT_URL = env.VITE_GO_PAYMENT_URL || `${API_URL}/api/payment`;
 const GO_AUCTION_WS_URL = env.VITE_GO_AUCTION_WS_URL || 'wss://ws.mzadat.com/auction';
 const PYTHON_ADMIN_URL = env.VITE_PYTHON_ADMIN_URL || 'https://admin.mzadat.com/api';
-const GO_PAYMENT_URL = env.VITE_GO_PAYMENT_URL || 'https://api.mzadat.com/payment';
 
 // ─── Typed error ─────────────────────────────────────────────────────────────
 export class ApiError extends Error {
@@ -92,11 +93,41 @@ async function fetchREST<T = unknown>(url: string, options: RequestOptions = {})
 
 // ─── Go Microservices Integrations ───────────────────────────────────────────
 
+export interface NafathInitiateResponse {
+  request_id: string;
+  random_number: number;
+  expires_at: string;
+  mode: 'mock' | 'live';
+}
+
+export interface NafathStatusResponse {
+  request_id: string;
+  status: 'WAITING' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
+  national_id?: string;
+  full_name?: string;
+  birth_date?: string;
+  user_id?: string;
+  token?: string;
+  updated_at: string;
+}
+
 export const AuthServices = {
   login: (data: unknown) =>
     fetchREST(`${GO_AUTH_URL}/login`, { method: 'POST', body: JSON.stringify(data) }),
-  verifyNafath: (data: unknown) =>
-    fetchREST(`${GO_AUTH_URL}/nafath/verify`, { method: 'POST', body: JSON.stringify(data) }),
+
+  /** POST /api/auth/nafath/initiate — kick off a Nafath verification request. */
+  initiateNafath: (nationalId: string) =>
+    fetchREST<NafathInitiateResponse>(`${GO_AUTH_URL}/nafath/initiate`, {
+      method: 'POST',
+      body: JSON.stringify({ national_id: nationalId }),
+    }),
+
+  /** GET /api/auth/nafath/status/{request_id} — poll for approval. */
+  nafathStatus: (requestId: string) =>
+    fetchREST<NafathStatusResponse>(
+      `${GO_AUTH_URL}/nafath/status/${encodeURIComponent(requestId)}`,
+    ),
+
   checkSession: () => fetchREST(`${GO_AUTH_URL}/session`),
 };
 

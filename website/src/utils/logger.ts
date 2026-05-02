@@ -79,13 +79,28 @@ class Logger {
     this.notify();
   }
 
-  trackBidEvent(auctionId: string, amount: number, success: boolean, errorMessage?: string) {
+  trackBidEvent(
+    auctionId: string,
+    amount: number,
+    success: boolean,
+    errorMessage?: string,
+    kind: 'business' | 'system' = 'business',
+  ) {
     if (success) {
       this.info(`Bid placed successfully`, { auctionId, amount }, 'BiddingSystem');
       this.trackMetric('bid_success', 1, { auctionId });
+      return;
+    }
+    // Business-rule rejections (low bid, insufficient balance, auction closed)
+    // are expected outcomes, not system faults — surface them at warn level.
+    // System/network failures still surface at error level.
+    const ctx = { auctionId, amount, error: errorMessage };
+    if (kind === 'system') {
+      this.error(`Bid failed (system)`, ctx, 'BiddingSystem');
+      this.trackMetric('bid_error', 1, { auctionId, reason: errorMessage || 'unknown' });
     } else {
-      this.error(`Bid failed`, { auctionId, amount, error: errorMessage }, 'BiddingSystem');
-      this.trackMetric('bid_failure', 1, { auctionId, reason: errorMessage || 'unknown' });
+      this.warn(`Bid rejected`, ctx, 'BiddingSystem');
+      this.trackMetric('bid_rejected', 1, { auctionId, reason: errorMessage || 'unknown' });
     }
   }
 
@@ -124,5 +139,4 @@ setTimeout(() => {
   logger.trackBidEvent('MZ-123', 500000, true);
   logger.trackBidEvent('MZ-124', 25000, false, 'Insufficient wallet balance');
   logger.trackPaymentEvent('TX-8821', 100000, true, 'SADAD');
-  logger.error('Nafath API connection timeout', { endpoint: '/verify' }, 'AuthService');
 }, 1000);

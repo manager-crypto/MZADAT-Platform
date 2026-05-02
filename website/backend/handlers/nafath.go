@@ -221,16 +221,17 @@ func upsertNafathUser(ctx context.Context, r *http.Request, nationalID string,
 		// Create new user. Email + phone are placeholders since Nafath doesn't return them.
 		// Customer must complete profile after first Nafath login.
 		stubEmail := fmt.Sprintf("nafath_%s@unverified.mzadat.local", nationalID)
+		stubPhone := "+966" + nationalID
 		err = db.Pool.QueryRow(ctx, `
 			INSERT INTO users (
 				email, password_hash, phone, full_name,
 				nafath_id, nafath_verified_at, nafath_full_name_ar, nafath_birth_date,
-				is_active, is_email_verified, is_phone_verified
+				is_active, email_verified, phone_verified
 			) VALUES (
-				$1, '', '', COALESCE($2, ''), $3, NOW(), $4, $5, TRUE, FALSE, FALSE
+				$1, '', $2, COALESCE($3, ''), $4, NOW(), $5, $6, TRUE, FALSE, FALSE
 			)
 			RETURNING id::TEXT`,
-			stubEmail, fullName, nationalID, fullName, birthDate,
+			stubEmail, stubPhone, fullName, nationalID, fullName, birthDate,
 		).Scan(&userID)
 		if err != nil {
 			return "", "", "", "", fmt.Errorf("create user: %w", err)

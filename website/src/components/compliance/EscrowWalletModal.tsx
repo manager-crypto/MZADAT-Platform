@@ -43,7 +43,7 @@ export const EscrowWalletModal: React.FC<EscrowWalletModalProps> = ({
  } catch (error) {
  console.error(error);
  setStatus('error');
- logger.trackBidEvent(auctionId, bidAmount, false, 'Escrow hold failed via SAMA API');
+ logger.trackBidEvent(auctionId, bidAmount, false, 'Escrow hold failed via SAMA API', 'system');
  }
  };
 

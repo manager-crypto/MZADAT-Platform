@@ -34,9 +34,10 @@ interface LoginModalProps {
  isOpen: boolean;
  onClose: () => void;
  onLogin?: () => void;
+ onNavigate?: (page: string) => void;
 }
 
-export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => {
+export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin, onNavigate }) => {
  const { t } = useTranslation();
  const [step, setStep] = useState<'selection' | 'login' | 'biometric'>('selection');
  const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'success' | 'error'>('idle');
@@ -95,12 +96,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
  };
 
  const handleNafathLogin = () => {
- setIsLoading(true);
- setTimeout(() => {
- setIsLoading(false);
- if (onLogin) onLogin();
+ // Defer to the dedicated Nafath flow (NafathLoginPage → NafathVerificationPage),
+ // which calls AuthServices.initiateNafath / AuthServices.nafathStatus end-to-end.
  onClose();
- }, 2000);
+ onNavigate?.('nafath-login');
  };
 
  return (

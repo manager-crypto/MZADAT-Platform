@@ -1,87 +1,134 @@
 // src/services/complianceApi.ts
-// Compliance Architecture Layer for Absher, SAMA, and CITC (CST) integrations
+// Compliance Architecture Layer for Absher/Nafath, SAMA, and CITC (CST) integrations.
+//
+// Nafath calls hit the real Go backend at /api/auth/nafath/*.
+// SAMA / CITC routes are not yet implemented server-side; they fall back to a
+// mocked response only when VITE_ENABLE_MOCK_FALLBACK is explicitly enabled.
 
-/**
- * 1. Absher/Nafath Identity Verification (SSO & KYC)
- * 2. SAMA (Saudi Central Bank) Financial Compliance (Escrow, KYC limits, AML checks)
- * 3. CITC/CST (Communications, Space & Technology Commission) Logging & Reporting
- */
+const env = (import.meta as any).env ?? {};
+const API_URL: string = env.VITE_API_URL || 'http://localhost:8080';
+const ENABLE_MOCK_FALLBACK: boolean = String(env.VITE_ENABLE_MOCK_FALLBACK) === 'true';
 
-const COMPLIANCE_API_URL = import.meta.env?.VITE_COMPLIANCE_API_URL || 'https://api.mzadat.com/compliance';
+interface FetchOptions extends RequestInit {
+  timeoutMs?: number;
+}
 
-const fetchComplianceREST = async (endpoint: string, options: RequestInit = {}) => {
-  const token = localStorage.getItem('access_token');
+async function backendFetch<T = any>(path: string, options: FetchOptions = {}): Promise<T> {
+  const { timeoutMs = 15_000, ...rest } = options;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  const token = (() => {
+    try {
+      return typeof window !== 'undefined' ? window.localStorage.getItem('access_token') : null;
+    } catch {
+      return null;
+    }
+  })();
+
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...options.headers,
+    ...(rest.headers ?? {}),
   };
 
   try {
-    // Check if the API URL is a dummy URL or mock phase
-    if (COMPLIANCE_API_URL.includes('mzadat.com') || COMPLIANCE_API_URL.includes('example')) {
-      console.log(`[Mock Compliance API Call]: ${endpoint}`);
-      return new Promise((resolve) => {
-         setTimeout(() => {
-            resolve({ success: true, mocked: true, timestamp: new Date().toISOString() });
-         }, 500);
-      });
+    const response = await fetch(`${API_URL}${path}`, { ...rest, headers, signal: controller.signal });
+    const text = await response.text();
+    const body = text ? safeJSON(text) : null;
+    if (!response.ok) {
+      const msg =
+        (body && typeof body === 'object' && 'error' in body && (body as any).error) ||
+        `API Error: ${response.status}`;
+      throw new Error(String(msg));
     }
-
-    const response = await fetch(`${COMPLIANCE_API_URL}${endpoint}`, { ...options, headers });
-    if (!response.ok) throw new Error(`Compliance API Error: ${response.status}`);
-    return await response.json();
-  } catch (error) {
-    console.error("Compliance Engine Error:", error);
-    // Return mock success on network failures during development
-    return { success: true, mocked: true, error: true, timestamp: new Date().toISOString() };
+    return body as T;
+  } finally {
+    clearTimeout(timer);
   }
-};
+}
+
+function safeJSON(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}
+
+// Used for SAMA/CITC routes that don't have a real backend yet.
+async function mockableFetch<T = any>(path: string, options: FetchOptions = {}): Promise<T> {
+  try {
+    return await backendFetch<T>(path, options);
+  } catch (error) {
+    if (ENABLE_MOCK_FALLBACK) {
+      console.warn(`[Compliance mock fallback] ${path}:`, (error as Error).message);
+      return { success: true, mocked: true, timestamp: new Date().toISOString() } as T;
+    }
+    throw error;
+  }
+}
+
+// ─── Absher / Nafath ────────────────────────────────────────────────────────
 
 export const AbsherIntegration = {
-  /**
-   * Initiates a Nafath verification request
-   */
-  requestVerification: (nationalId: string) => 
-    fetchComplianceREST('/nafath/request', { method: 'POST', body: JSON.stringify({ nationalId }) }),
-  
-  /**
-   * Checks the status of an ongoing Nafath request
-   */
-  checkStatus: (transactionId: string) => 
-    fetchComplianceREST(`/nafath/status/${transactionId}`),
+  /** POST /api/auth/nafath/initiate — returns { request_id, random_number, expires_at, mode }. */
+  requestVerification: (nationalId: string) =>
+    backendFetch<{
+      request_id: string;
+      random_number: number;
+      expires_at: string;
+      mode: 'mock' | 'live';
+    }>('/api/auth/nafath/initiate', {
+      method: 'POST',
+      body: JSON.stringify({ national_id: nationalId }),
+    }),
+
+  /** GET /api/auth/nafath/status/{request_id}. */
+  checkStatus: (requestId: string) =>
+    backendFetch<{
+      request_id: string;
+      status: 'WAITING' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
+      national_id?: string;
+      full_name?: string;
+      birth_date?: string;
+      user_id?: string;
+      token?: string;
+      updated_at: string;
+    }>(`/api/auth/nafath/status/${encodeURIComponent(requestId)}`),
 };
+
+// ─── SAMA (no backend yet — falls back to mock when flag is on) ─────────────
 
 export const SamaCompliance = {
-  /**
-   * Verifies Anti-Money Laundering (AML) status for a user before allowing large bids
-   */
-  checkAmlStatus: (userId: string) => 
-    fetchComplianceREST(`/sama/aml/check/${userId}`),
+  checkAmlStatus: (userId: string) =>
+    mockableFetch(`/api/compliance/sama/aml/check/${encodeURIComponent(userId)}`),
 
-  /**
-   * Logs a high-value transaction to the SAMA reporting ledger
-   */
-  logTransaction: (transactionDetails: any) => 
-    fetchComplianceREST('/sama/transactions/log', { method: 'POST', body: JSON.stringify(transactionDetails) }),
+  logTransaction: (transactionDetails: any) =>
+    mockableFetch('/api/compliance/sama/transactions/log', {
+      method: 'POST',
+      body: JSON.stringify(transactionDetails),
+    }),
 
-  /**
-   * Holds funds in an escrow wallet compliant with SAMA regulations
-   */
   holdEscrow: (amount: number, auctionId: string) =>
-    fetchComplianceREST('/sama/escrow/hold', { method: 'POST', body: JSON.stringify({ amount, auctionId }) }),
+    mockableFetch('/api/compliance/sama/escrow/hold', {
+      method: 'POST',
+      body: JSON.stringify({ amount, auctionId }),
+    }),
 };
 
-export const CitcCompliance = {
-  /**
-   * Logs user consent to terms of service and data privacy (CITC requirement)
-   */
-  logUserConsent: (userId: string, consentVersion: string) =>
-    fetchComplianceREST('/citc/consent/log', { method: 'POST', body: JSON.stringify({ userId, consentVersion }) }),
+// ─── CITC / CST (no backend yet — falls back to mock when flag is on) ───────
 
-  /**
-   * Submits a platform performance and uptime report to CST
-   */
+export const CitcCompliance = {
+  logUserConsent: (userId: string, consentVersion: string) =>
+    mockableFetch('/api/compliance/citc/consent/log', {
+      method: 'POST',
+      body: JSON.stringify({ userId, consentVersion }),
+    }),
+
   submitPerformanceReport: (metrics: any) =>
-    fetchComplianceREST('/citc/reports/performance', { method: 'POST', body: JSON.stringify(metrics) }),
+    mockableFetch('/api/compliance/citc/reports/performance', {
+      method: 'POST',
+      body: JSON.stringify(metrics),
+    }),
 };
