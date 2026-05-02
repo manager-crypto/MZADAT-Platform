@@ -9,10 +9,10 @@
 
 const env = (import.meta as any).env ?? {};
 
-const GO_AUTH_URL        = env.VITE_GO_AUTH_URL        || 'https://api.mzadat.com/auth';
-const GO_AUCTION_WS_URL  = env.VITE_GO_AUCTION_WS_URL  || 'wss://ws.mzadat.com/auction';
-const PYTHON_ADMIN_URL   = env.VITE_PYTHON_ADMIN_URL   || 'https://admin.mzadat.com/api';
-const GO_PAYMENT_URL     = env.VITE_GO_PAYMENT_URL     || 'https://api.mzadat.com/payment';
+const GO_AUTH_URL = env.VITE_GO_AUTH_URL || 'https://api.mzadat.com/auth';
+const GO_AUCTION_WS_URL = env.VITE_GO_AUCTION_WS_URL || 'wss://ws.mzadat.com/auction';
+const PYTHON_ADMIN_URL = env.VITE_PYTHON_ADMIN_URL || 'https://admin.mzadat.com/api';
+const GO_PAYMENT_URL = env.VITE_GO_PAYMENT_URL || 'https://api.mzadat.com/payment';
 
 // ─── Typed error ─────────────────────────────────────────────────────────────
 export class ApiError extends Error {
