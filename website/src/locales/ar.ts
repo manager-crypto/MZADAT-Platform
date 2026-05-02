@@ -4021,5 +4021,69 @@ export default {
     "scheme3Title": "مخطط النرجس",
     "scheme3Location": "حي النرجس، الرياض",
     "scheme3Area": "600 - 900 م²"
+  },
+  "settings": {
+    "pageTitle": "إعدادات الحساب",
+    "pageSubtitle": "إدارة تفضيلات حسابك وإعدادات المظهر",
+    "saveChanges": "حفظ التغييرات",
+    "tabs": {
+      "profile": "الملف الشخصي",
+      "security": "الأمان",
+      "notifications": "التنبيهات",
+      "preferences": "التفضيلات"
+    },
+    "profile": {
+      "nafathTitle": "معلومات نفاذ",
+      "verifiedViaNafath": "موثق عبر نفاذ",
+      "fullNameAr": "الاسم الكامل (عربي)",
+      "fullNameLabel": "الاسم الكامل",
+      "idNumber": "رقم الهوية",
+      "dateOfBirth": "تاريخ الميلاد",
+      "membershipNumber": "رقم العضوية",
+      "personalPreferences": " التفضيلات الشخصية",
+      "nickname": "اللقب / اسم الشهرة",
+      "nicknamePlaceholder": "أدخل اللقب",
+      "emailLabel": "البريد الإلكتروني",
+      "emailNotVerified": "البريد الإلكتروني غير موثق",
+      "phoneLabel": "رقم الجوال",
+      "phoneNotVerified": "رقم الجوال غير موثق",
+      "verifyNow": "توثيق الآن"
+    },
+    "preferences": {
+      "displayTitle": "إعدادات العرض واللغة",
+      "timezone": "المنطقة الزمنية",
+      "interfaceLanguage": "لغة الواجهة",
+      "appearance": "المظهر",
+      "previewNote": "معاينة المظهر المختار",
+      "themeMode": "وضع السمات",
+      "themeLight": "فاتح",
+      "themeDark": "داكن",
+      "themeSystem": "تلقائي (النظام)",
+      "primaryColor": "اللون الرئيسي",
+      "fontSize": "حجم الخط",
+      "fontSmall": "صغير",
+      "fontMedium": "متوسط",
+      "fontLarge": "كبير"
+    },
+    "notifications": {
+      "title": "إعدادات التنبيهات",
+      "auctionAlerts": "تنبيهات المزاد",
+      "auctionAlertsDesc": "تلقي إشعارات فورية عند بدء المزايدة أو تحديثها",
+      "bidsOffers": "العروض والمزايدات",
+      "bidsOffersDesc": "إشعارات خاصة بالعروض المقدمة والقبول أو الرفض",
+      "systemUpdates": "تحديثات النظام",
+      "systemUpdatesDesc": "تنبيهات حول الميزات الجديدة أو تحديثات الصيانة",
+      "promotions": "العروض الترويجية",
+      "promotionsDesc": "احصل على آخر العروض والخصومات الحصرية"
+    },
+    "security": {
+      "changePassword": "تغيير كلمة المرور",
+      "currentPassword": "كلمة المرور الحالية",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmNewPassword": "تأكيد كلمة المرور الجديدة",
+      "twoFactorTitle": "التحقق الثنائي (2FA)",
+      "enable2fa": "تفعيل التحقق بخطوتين",
+      "enable2faDesc": "إضافة طبقة حماية إضافية لحسابك باستخدام رمز التحقق"
+    }
   }
 };
